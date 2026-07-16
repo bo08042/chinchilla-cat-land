@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* 視覺基調：
+   - 底色 cream（奶油白）呼應金吉拉的乳白底毛
+   - 主色 emerald 取自金吉拉的綠寶石眼睛
+   - 點綴色 amber 呼應「金」吉拉與樂園的活潑感
+   - 文字用 stone 系的暖灰，貼近銀灰毛色 */
+@theme {
+  --font-sans: 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;
+  --color-cream-50: oklch(0.985 0.008 90);
+  --color-cream-100: oklch(0.965 0.014 88);
+}

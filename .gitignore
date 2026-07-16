@@ -1,0 +1,7 @@
+node_modules
+dist
+
+# 規劃文件僅留本地，不上 git
+docs/
+*.local
+.DS_Store
