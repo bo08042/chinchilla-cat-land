@@ -31,45 +31,49 @@ export default function Home() {
   const liveGames = games.filter((g) => g.status === 'live')
 
   return (
-    <div className="space-y-12">
-      {/* Hero */}
-      <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-cream-100 to-amber-50 px-6 py-14 text-center sm:py-20">
-        <p className="text-5xl sm:text-6xl">🐱</p>
-        <h1 className="mt-4 text-3xl font-black text-stone-800 sm:text-4xl">
-          歡迎來到<span className="text-emerald-700">金吉拉樂園</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-stone-600">
-          這裡是專屬金吉拉貓的小天地——認識這位擁有銀白毛髮與綠寶石眼睛的優雅貴族，
-          學會怎麼照顧牠，再到遊戲樂園陪牠玩一場。
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link
-            to="/knowledge"
-            className="rounded-full bg-emerald-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-emerald-700"
-          >
-            開始認識金吉拉
-          </Link>
-          <Link
-            to="/games"
-            className="rounded-full border border-amber-300 bg-white px-6 py-2.5 font-medium text-amber-700 transition-colors hover:bg-amber-50"
-          >
-            🎮 遊戲樂園
-          </Link>
+    <div className="space-y-14">
+      {/* Hero：插畫樂園感 */}
+      <section className="relative overflow-hidden rounded-[2.5rem] border-2 border-cocoa-200 bg-gradient-to-br from-cream-100 via-honey-300/35 to-cream-200 px-6 py-16 text-center shadow-[6px_6px_0_0_var(--color-honey-300)] sm:py-20">
+        {/* 裝飾圓點與貓掌 */}
+        <div aria-hidden="true">
+          <div className="absolute -top-12 -left-12 h-40 w-40 rounded-full bg-honey-300/50" />
+          <div className="absolute -right-16 -bottom-16 h-52 w-52 rounded-full bg-honey-400/30" />
+          <div className="absolute top-8 right-10 hidden rotate-12 text-3xl sm:block">🐾</div>
+          <div className="absolute bottom-10 left-10 hidden -rotate-12 text-2xl sm:block">🐾</div>
+          <div className="absolute top-1/2 left-6 hidden text-xl opacity-60 sm:block">✨</div>
+        </div>
+
+        <div className="relative">
+          <p className="text-6xl sm:text-7xl">🐱</p>
+          <h1 className="mt-5 text-3xl font-black text-cocoa-900 sm:text-5xl">
+            歡迎來到金吉拉樂園
+          </h1>
+          <p className="mt-3 text-sm font-bold tracking-widest text-cocoa-500 uppercase">
+            Chinchilla Cat Land
+          </p>
+          <p className="mx-auto mt-5 max-w-xl leading-relaxed text-cocoa-700">
+            這裡是專屬金吉拉貓的小天地——認識這位擁有銀白毛髮與綠寶石眼睛的優雅貴族，
+            學會怎麼照顧牠，再到遊戲樂園陪牠玩一場。
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link to="/knowledge" className="btn-honey">
+              開始認識金吉拉
+            </Link>
+            <Link to="/games" className="btn-outline">
+              🎮 遊戲樂園
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* 三大區塊導覽 */}
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-5 sm:grid-cols-3">
         {sections.map(({ to, emoji, title, text, cta }) => (
-          <Link
-            key={to}
-            to={to}
-            className="group rounded-2xl border border-stone-200 bg-white p-6 transition-shadow hover:shadow-md"
-          >
-            <p className="text-3xl">{emoji}</p>
-            <h2 className="mt-3 text-lg font-bold text-stone-800">{title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-stone-600">{text}</p>
-            <p className="mt-4 text-sm font-medium text-emerald-700 group-hover:underline">
+          <Link key={to} to={to} className="card-sticker card-sticker-hover group p-6">
+            <p className="inline-block rounded-2xl bg-cream-100 p-3 text-3xl">{emoji}</p>
+            <h2 className="mt-3 text-lg font-black text-cocoa-900">{title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-cocoa-700">{text}</p>
+            <p className="mt-4 text-sm font-bold text-honey-600 group-hover:underline">
               {cta} →
             </p>
           </Link>
@@ -79,21 +83,24 @@ export default function Home() {
       {/* 最新文章 */}
       {latestArticles.length > 0 && (
         <section>
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="text-xl font-bold text-stone-800">最新文章</h2>
-            <Link to="/knowledge" className="text-sm text-emerald-700 hover:underline">
+          <div className="mb-5 flex items-baseline justify-between">
+            <h2 className="text-xl font-black text-cocoa-900">📰 最新文章</h2>
+            <Link
+              to="/knowledge"
+              className="text-sm font-bold text-honey-600 hover:underline"
+            >
               全部文章 →
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-3">
             {latestArticles.map((article) => (
               <Link
                 key={article.slug}
                 to={`/knowledge/${article.slug}`}
-                className="rounded-2xl border border-stone-200 bg-white p-5 transition-shadow hover:shadow-md"
+                className="card-sticker card-sticker-hover p-5"
               >
-                <h3 className="font-bold text-stone-800">{article.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-stone-600">
+                <h3 className="font-bold text-cocoa-900">{article.title}</h3>
+                <p className="mt-2 line-clamp-3 text-sm text-cocoa-700">
                   {article.summary}
                 </p>
               </Link>
@@ -104,25 +111,24 @@ export default function Home() {
 
       {/* 已上線遊戲；Wave 1 遊戲上線前顯示預告 */}
       <section>
-        <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-xl font-bold text-stone-800">
-            {liveGames.length > 0 ? '熱門遊戲' : '遊戲搶先看'}
+        <div className="mb-5 flex items-baseline justify-between">
+          <h2 className="text-xl font-black text-cocoa-900">
+            {liveGames.length > 0 ? '🔥 熱門遊戲' : '🎪 遊戲搶先看'}
           </h2>
-          <Link to="/games" className="text-sm text-emerald-700 hover:underline">
+          <Link to="/games" className="text-sm font-bold text-honey-600 hover:underline">
             所有遊戲 →
           </Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-4">
           {(liveGames.length > 0 ? liveGames : games.filter((g) => g.wave === 1)).map(
             (game) => (
-              <div
-                key={game.id}
-                className="rounded-2xl border border-stone-200 bg-white p-5 text-center"
-              >
+              <div key={game.id} className="card-sticker p-5 text-center">
                 <p className="text-3xl">{game.emoji}</p>
-                <h3 className="mt-2 font-bold text-stone-800">{game.title}</h3>
+                <h3 className="mt-2 font-bold text-cocoa-900">{game.title}</h3>
                 {game.status !== 'live' && (
-                  <p className="mt-1 text-xs text-amber-600">即將登場</p>
+                  <p className="mt-2 inline-block rounded-full bg-honey-300 px-2.5 py-0.5 text-xs font-bold text-cocoa-900">
+                    即將登場
+                  </p>
                 )}
               </div>
             ),

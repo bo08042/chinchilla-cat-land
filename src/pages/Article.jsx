@@ -14,23 +14,23 @@ export default function Article() {
 
   return (
     <article className="mx-auto max-w-2xl">
-      <Link to="/knowledge" className="text-sm text-emerald-700 hover:underline">
+      <Link to="/knowledge" className="text-sm font-bold text-honey-600 hover:underline">
         ← 回知識庫
       </Link>
       <header className="mt-4">
         {categoryLabel && (
-          <p className="text-sm font-medium text-emerald-700">{categoryLabel}</p>
+          <p className="text-sm font-bold text-emerald-700">{categoryLabel}</p>
         )}
-        <h1 className="mt-1 text-3xl font-bold text-stone-800">{article.title}</h1>
+        <h1 className="mt-1 text-3xl font-black text-cocoa-900">{article.title}</h1>
         {article.updated && (
-          <p className="mt-2 text-sm text-stone-400">最後更新：{article.updated}</p>
+          <p className="mt-2 text-sm text-cocoa-500">最後更新：{article.updated}</p>
         )}
       </header>
-      <div className="prose prose-stone mt-8 max-w-none">
+      <div className="card-sticker prose prose-stone mt-8 max-w-none p-6 sm:p-8">
         <Markdown remarkPlugins={[remarkGfm]}>{article.body}</Markdown>
       </div>
-      <footer className="mt-10 rounded-xl bg-stone-100 p-4 text-sm text-stone-500">
-        本文為飼養知識參考，並非獸醫醫療建議。若貓咪有健康異狀，請諮詢獸醫師。
+      <footer className="mt-8 rounded-2xl bg-cream-200 p-4 text-sm text-cocoa-700">
+        🐾 本文為飼養知識參考，並非獸醫醫療建議。若貓咪有健康異狀，請諮詢獸醫師。
       </footer>
     </article>
   )

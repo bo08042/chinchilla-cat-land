@@ -5,22 +5,22 @@ function GameCard({ game }) {
 
   return (
     <div
-      className={`rounded-2xl border bg-white p-6 ${
+      className={
         isLive
-          ? 'border-stone-200 transition-shadow hover:shadow-md'
-          : 'border-dashed border-stone-300'
-      }`}
+          ? 'card-sticker card-sticker-hover p-6'
+          : 'rounded-3xl border-2 border-dashed border-cocoa-300 bg-white/70 p-6'
+      }
     >
       <div className="flex items-start justify-between">
-        <p className="text-4xl">{game.emoji}</p>
+        <p className="inline-block rounded-2xl bg-cream-100 p-2.5 text-4xl">{game.emoji}</p>
         {!isLive && (
-          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+          <span className="rounded-full bg-honey-300 px-2.5 py-1 text-xs font-bold text-cocoa-900">
             即將登場
           </span>
         )}
       </div>
-      <h2 className="mt-3 text-lg font-bold text-stone-800">{game.title}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-stone-600">{game.summary}</p>
+      <h2 className="mt-3 text-lg font-black text-cocoa-900">{game.title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-cocoa-700">{game.summary}</p>
       {/* 遊戲上線後：把這裡換成 <Link to={`/games/${game.id}`}> 開始遊戲按鈕 */}
     </div>
   )
@@ -29,11 +29,11 @@ function GameCard({ game }) {
 export default function Games() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-stone-800">遊戲樂園</h1>
-      <p className="mt-2 text-stone-600">
+      <h1 className="text-2xl font-black text-cocoa-900">🎮 遊戲樂園</h1>
+      <p className="mt-2 text-cocoa-700">
         和金吉拉一起玩！所有遊戲免下載、免註冊，打開就能玩。
       </p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {games.map((game) => (
           <GameCard key={game.id} game={game} />
         ))}

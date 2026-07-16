@@ -1,13 +1,44 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
-/* 視覺基調：
-   - 底色 cream（奶油白）呼應金吉拉的乳白底毛
-   - 主色 emerald 取自金吉拉的綠寶石眼睛
-   - 點綴色 amber 呼應「金」吉拉與樂園的活潑感
-   - 文字用 stone 系的暖灰，貼近銀灰毛色 */
+/* 視覺基調：暖黃「蜂蜜奶油」樂園風（承襲舊版 chinchilla_land 的暖黃色調，飽和度調柔和）
+   - cream：奶油黃底色系，呼應金吉拉的乳白底毛
+   - honey：蜂蜜金強調色系，用於按鈕、標籤與裝飾，呼應「金」吉拉
+   - cocoa：暖可可棕文字/描邊色系，取代冷灰
+   - emerald（Tailwind 內建）：小面積點綴，呼應綠寶石眼睛 */
 @theme {
   --font-sans: 'Noto Sans TC', ui-sans-serif, system-ui, sans-serif;
-  --color-cream-50: oklch(0.985 0.008 90);
-  --color-cream-100: oklch(0.965 0.014 88);
+
+  --color-cream-50: #fffbf0;
+  --color-cream-100: #fff4d6;
+  --color-cream-200: #ffecb8;
+
+  --color-honey-300: #ffde7a;
+  --color-honey-400: #ffce4f;
+  --color-honey-500: #f0b429;
+  --color-honey-600: #d69511;
+
+  --color-cocoa-100: #f0e4d2;
+  --color-cocoa-200: #e2d0b8;
+  --color-cocoa-300: #c9ae8c;
+  --color-cocoa-500: #8a6d4e;
+  --color-cocoa-700: #5f4a33;
+  --color-cocoa-900: #3e2f1f;
+}
+
+@layer components {
+  /* 貼紙感卡片：粗暖棕描邊 + 實色偏移陰影，hover 微上浮 */
+  .card-sticker {
+    @apply rounded-3xl border-2 border-cocoa-200 bg-white shadow-[4px_4px_0_0_var(--color-cocoa-100)];
+  }
+  .card-sticker-hover {
+    @apply transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--color-honey-300)];
+  }
+
+  .btn-honey {
+    @apply inline-block rounded-full bg-honey-400 px-6 py-2.5 font-bold text-cocoa-900 shadow-[3px_3px_0_0_var(--color-honey-600)] transition-all hover:-translate-y-0.5 hover:bg-honey-300;
+  }
+  .btn-outline {
+    @apply inline-block rounded-full border-2 border-cocoa-200 bg-white px-6 py-2.5 font-bold text-cocoa-700 transition-all hover:-translate-y-0.5 hover:border-honey-400 hover:text-cocoa-900;
+  }
 }

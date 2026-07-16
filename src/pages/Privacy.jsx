@@ -1,8 +1,8 @@
 export default function Privacy() {
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-stone-800">隱私權政策</h1>
-      <div className="prose prose-stone mt-6 max-w-none">
+      <h1 className="text-2xl font-black text-cocoa-900">隱私權政策</h1>
+      <div className="card-sticker prose prose-stone mt-6 max-w-none p-6 sm:p-8">
         <p>最後更新：2026-07-16</p>
         <h2>我們蒐集哪些資料</h2>
         <ul>

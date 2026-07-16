@@ -28,8 +28,8 @@ function NavLinks({ onNavigate, className }) {
       className={({ isActive }) =>
         `${className} transition-colors ${
           isActive
-            ? 'bg-emerald-100 font-medium text-emerald-800'
-            : 'text-stone-500 hover:bg-stone-100 hover:text-stone-800'
+            ? 'bg-honey-300 font-bold text-cocoa-900'
+            : 'text-cocoa-500 hover:bg-cream-100 hover:text-cocoa-900'
         }`
       }
     >
@@ -42,20 +42,19 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen flex-col bg-cream-50 text-stone-800">
+    <div className="flex min-h-screen flex-col bg-cream-50 text-cocoa-700">
       <ScrollToTop />
       <PageMeta />
-      <header className="sticky top-0 z-10 border-b border-stone-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+
+      {/* 懸浮膠囊式導覽島 */}
+      <header className="sticky top-0 z-20 px-4 pt-3 pb-1">
+        <div className="mx-auto flex max-w-3xl items-center justify-between rounded-full border-2 border-cocoa-200 bg-white/95 py-2 pr-2 pl-5 shadow-[3px_3px_0_0_var(--color-cocoa-100)] backdrop-blur">
           <NavLink
             to="/"
             onClick={() => setMenuOpen(false)}
-            className="whitespace-nowrap text-lg font-bold text-emerald-700"
+            className="whitespace-nowrap text-lg font-black text-cocoa-900"
           >
-            🐱 金吉拉樂園{' '}
-            <span className="hidden text-sm font-normal text-stone-400 sm:inline">
-              Chinchilla Cat Land
-            </span>
+            🐱 金吉拉樂園
           </NavLink>
 
           {/* 桌面版導覽 */}
@@ -68,7 +67,7 @@ export default function App() {
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? '關閉選單' : '開啟選單'}
             aria-expanded={menuOpen}
-            className="rounded-lg p-2 text-stone-600 hover:bg-stone-100 sm:hidden"
+            className="rounded-full p-2 text-cocoa-700 hover:bg-cream-100 sm:hidden"
           >
             <svg
               width="22"
@@ -97,16 +96,16 @@ export default function App() {
 
         {/* 手機版展開選單 */}
         {menuOpen && (
-          <nav className="flex flex-col gap-1 border-t border-stone-100 px-4 py-3 text-sm sm:hidden">
+          <nav className="mx-auto mt-2 flex max-w-3xl flex-col gap-1 rounded-3xl border-2 border-cocoa-200 bg-white p-3 text-sm shadow-[3px_3px_0_0_var(--color-cocoa-100)] sm:hidden">
             <NavLinks
               onNavigate={() => setMenuOpen(false)}
-              className="rounded-lg px-3 py-2.5"
+              className="rounded-2xl px-3 py-2.5"
             />
           </nav>
         )}
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/knowledge" element={<Knowledge />} />
@@ -119,20 +118,20 @@ export default function App() {
         </Routes>
       </main>
 
-      <footer className="border-t border-stone-200 bg-white">
-        <div className="mx-auto max-w-5xl space-y-2 px-4 py-6 text-xs text-stone-500">
+      <footer className="border-t-2 border-cocoa-200 bg-cream-200">
+        <div className="mx-auto max-w-5xl space-y-2 px-4 py-6 text-xs text-cocoa-700">
           <p>
             本站內容為飼養知識參考，並非獸醫醫療建議。若貓咪有健康異狀，請諮詢獸醫師。
           </p>
           <div className="flex gap-4">
-            <NavLink to="/about" className="hover:text-stone-800">
+            <NavLink to="/about" className="font-medium hover:text-cocoa-900 hover:underline">
               關於本站／免責聲明
             </NavLink>
-            <NavLink to="/privacy" className="hover:text-stone-800">
+            <NavLink to="/privacy" className="font-medium hover:text-cocoa-900 hover:underline">
               隱私權政策
             </NavLink>
           </div>
-          <p>© 2026 金吉拉樂園 Chinchilla Cat Land</p>
+          <p>© 2026 金吉拉樂園 Chinchilla Cat Land 🐾</p>
         </div>
       </footer>
     </div>

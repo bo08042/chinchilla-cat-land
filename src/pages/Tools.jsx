@@ -22,22 +22,22 @@ const tools = [
 export default function Tools() {
   return (
     <div>
-      <h1 className="text-2xl font-bold text-stone-800">互動工具</h1>
-      <p className="mt-2 text-stone-600">養貓路上的實用小工具，全部在瀏覽器裡完成。</p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <h1 className="text-2xl font-black text-cocoa-900">🧮 互動工具</h1>
+      <p className="mt-2 text-cocoa-700">養貓路上的實用小工具，全部在瀏覽器裡完成。</p>
+      <div className="mt-8 grid gap-5 sm:grid-cols-3">
         {tools.map(({ id, emoji, title, text }) => (
           <div
             key={id}
-            className="rounded-2xl border border-dashed border-stone-300 bg-white p-6"
+            className="rounded-3xl border-2 border-dashed border-cocoa-300 bg-white/70 p-6"
           >
             <div className="flex items-start justify-between">
-              <p className="text-4xl">{emoji}</p>
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
+              <p className="inline-block rounded-2xl bg-cream-100 p-2.5 text-4xl">{emoji}</p>
+              <span className="rounded-full bg-honey-300 px-2.5 py-1 text-xs font-bold text-cocoa-900">
                 即將登場
               </span>
             </div>
-            <h2 className="mt-3 text-lg font-bold text-stone-800">{title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-stone-600">{text}</p>
+            <h2 className="mt-3 text-lg font-black text-cocoa-900">{title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-cocoa-700">{text}</p>
           </div>
         ))}
       </div>

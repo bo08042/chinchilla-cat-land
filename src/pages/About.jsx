@@ -1,8 +1,8 @@
 export default function About() {
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-stone-800">關於本站</h1>
-      <div className="prose prose-stone mt-6 max-w-none">
+      <h1 className="text-2xl font-black text-cocoa-900">關於本站</h1>
+      <div className="card-sticker prose prose-stone mt-6 max-w-none p-6 sm:p-8">
         <p>
           金吉拉樂園（Chinchilla Cat Land）是一個專門介紹金吉拉貓的主題網站。
           金吉拉是波斯貓家族中的銀白色品系，擁有雪白蓬鬆的毛髮、綠寶石般的眼睛與天生的黑色眼線，
