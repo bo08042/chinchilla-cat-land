@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Routes, Route, NavLink } from 'react-router-dom'
+import ChinchillaCat from './components/ChinchillaCat'
 import ScrollToTop from './components/ScrollToTop'
 import PageMeta from './components/PageMeta'
 import NotFound from './pages/NotFound'
@@ -52,9 +53,10 @@ export default function App() {
           <NavLink
             to="/"
             onClick={() => setMenuOpen(false)}
-            className="whitespace-nowrap text-lg font-black text-cocoa-900"
+            className="flex items-center gap-1.5 whitespace-nowrap text-lg font-black text-cocoa-900"
           >
-            🐱 金吉拉樂園
+            <ChinchillaCat className="h-8 w-8" />
+            金吉拉樂園
           </NavLink>
 
           {/* 桌面版導覽 */}

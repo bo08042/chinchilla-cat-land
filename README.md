@@ -4,11 +4,6 @@
 
 純前端專案（React 19 + Vite + Tailwind CSS 4），部署於 GitHub Pages。
 
-## 文件
-
-- [專案規劃](docs/project-plan.md) — 定位、內容規劃、技術架構、開發里程碑
-- [小遊戲設計規格](docs/games-design.md) — 各遊戲玩法、資料結構與實作要點
-
 ## 開發
 
 ```bash
