@@ -8,6 +8,8 @@
 //   'sitting' — 全身坐姿版：毛球身體、前腳與蓬尾
 //   'gentle'  — 恬靜肖像版：尖毛叢輪廓 + 溫柔杏仁眼 + 粉鼻（參考舊站照片神韻）
 //   'lying'   — 優雅趴姿版：慵懶趴姿 + 大蓬尾（參考舊站 hero2 照片）
+//   'portrait'— 真實臉型版：寬扁橢圓臉 + 不規則絲狀毛叢 + 內部毛流（最貼近真實照片；
+//               輪廓由 scratchpad 的 gen-realistic.mjs 腳本產生後貼入）
 // expression: 'happy'（預設）| 'surprised'（僅 classic 支援，404 等驚訝場景用）
 
 const OUTLINE = '#cfc4b6'
@@ -491,6 +493,92 @@ function Lying() {
   )
 }
 
+function Portrait() {
+  return (
+    <>
+      {/* 耳朵：小、寬距、半埋進毛裡 */}
+      <g stroke={OUTLINE} strokeWidth="3" strokeLinejoin="round">
+        <polygon points="29,40 35,20 49,29" fill="#fff" />
+        <polygon points="91,40 85,20 71,29" fill="#fff" />
+      </g>
+      <polygon points="34,34 37,25 44,28" fill={INNER_EAR} />
+      <polygon points="86,34 83,25 76,28" fill={INNER_EAR} />
+
+      {/* 絲狀毛叢輪廓：寬扁橢圓（腳本產生的不規則毛叢） */}
+      <path
+        d="M105.0 63.0 Q119.2 69.4 103.2 72.6 Q111.5 80.8 97.9 81.4 Q105.5 92.8 89.5 88.7 Q90.3 98.6 78.7 93.9 Q76.0 104.1 66.4 96.7 Q60.0 101.2 53.6 96.7 Q43.6 105.1 41.3 93.9 Q29.1 99.4 30.5 88.7 Q17.7 90.7 22.1 81.4 Q5.9 81.7 16.8 72.6 Q3.4 69.1 15.0 63.0 Q2.1 56.7 16.8 53.4 Q10.3 45.9 22.1 44.6 Q17.0 34.9 30.5 37.3 Q29.5 27.1 41.3 32.1 Q45.3 25.3 53.6 29.3 Q60.0 22.1 66.4 29.3 Q74.9 24.7 78.7 32.1 Q90.1 27.6 89.5 37.3 Q100.6 36.4 97.9 44.6 Q112.6 44.8 103.2 53.4 Q115.2 57.0 105.0 63.0 Z"
+        fill="#fff"
+        stroke={OUTLINE}
+        strokeWidth="2.8"
+        strokeLinejoin="round"
+      />
+
+      {/* 銀色淡影：額頭與兩頰 */}
+      <ellipse cx="60" cy="38" rx="12" ry="4" fill={SHADE} opacity="0.7" />
+      <ellipse cx="26" cy="63" rx="6" ry="9" fill={SHADE} opacity="0.7" />
+      <ellipse cx="94" cy="63" rx="6" ry="9" fill={SHADE} opacity="0.7" />
+
+      {/* 內部毛流 */}
+      <g stroke="#e4dccf" strokeWidth="1.6" strokeLinecap="round" fill="none">
+        <path d="M85.3 52.0 Q92.7 50.8 95.1 47.7" />
+        <path d="M88.6 58.4 Q91.6 56.5 99.6 56.6" />
+        <path d="M89.0 66.1 Q97.0 67.7 100.1 67.3" />
+        <path d="M86.5 72.3 Q89.1 73.1 96.7 75.9" />
+        <path d="M34.2 73.4 Q31.7 76.4 24.2 77.4" />
+        <path d="M31.4 67.6 Q23.4 67.5 20.4 69.4" />
+        <path d="M31.7 57.3 Q28.8 57.2 20.9 55.1" />
+        <path d="M35.2 51.3 Q27.9 48.0 25.7 46.8" />
+        <path d="M74.6 82.1 Q79.9 86.8 80.3 89.5" />
+        <path d="M45.4 82.1 Q40.1 84.8 39.8 89.5" />
+        <path d="M54.9 84.8 Q56.4 89.9 53.0 93.1" />
+        <path d="M65.1 84.8 Q63.6 87.9 67.0 93.1" />
+        <path d="M74.6 43.9 Q79.9 41.2 80.3 36.5" />
+        <path d="M50.0 42.2 Q45.6 37.2 46.1 34.2" />
+        <path d="M45.4 43.9 Q45.1 41.2 39.7 36.5" />
+        <path d="M67.6 41.7 Q66.5 36.5 70.5 33.4" />
+      </g>
+
+      {/* 溫柔杏仁眼 */}
+      <path
+        d="M36.5 58 Q44 49.5 51.5 58 Q44 67.5 36.5 58 z"
+        fill="#5ba379"
+        stroke={EYE_RIM}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M68.5 58 Q76 49.5 83.5 58 Q76 67.5 68.5 58 z"
+        fill="#5ba379"
+        stroke={EYE_RIM}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="44" cy="58.5" r="2.2" fill={PUPIL} />
+      <circle cx="76" cy="58.5" r="2.2" fill={PUPIL} />
+      <circle cx="42.5" cy="56.5" r="1.3" fill="#fff" />
+      <circle cx="74.5" cy="56.5" r="1.3" fill="#fff" />
+
+      {/* 粉鼻與小嘴（扁臉：鼻子靠近眼睛） */}
+      <path d="M57 67 h6 l-3 4.2 z" fill={PINK_NOSE} stroke={PINK_NOSE_RIM} strokeWidth="0.8" strokeLinejoin="round" />
+      <g stroke={SOFT_MOUTH} strokeWidth="1.6" strokeLinecap="round" fill="none">
+        <path d="M60 71 v2.3" />
+        <path d="M60 73.3 q-3 2.5 -5.5 0.8" />
+        <path d="M60 73.3 q3 2.5 5.5 0.8" />
+      </g>
+
+      {/* 鬍鬚 */}
+      <g stroke="#b3a68f" strokeWidth="1.3" strokeLinecap="round">
+        <line x1="28" y1="64" x2="6" y2="60" />
+        <line x1="28" y1="70" x2="7" y2="73" />
+        <line x1="31" y1="76" x2="12" y2="83" />
+        <line x1="92" y1="64" x2="114" y2="60" />
+        <line x1="92" y1="70" x2="113" y2="73" />
+        <line x1="89" y1="76" x2="108" y2="83" />
+      </g>
+    </>
+  )
+}
+
 const VARIANTS = {
   classic: Classic,
   fluffy: Fluffy,
@@ -498,6 +586,7 @@ const VARIANTS = {
   sitting: Sitting,
   gentle: Gentle,
   lying: Lying,
+  portrait: Portrait,
 }
 
 export default function ChinchillaCat({
