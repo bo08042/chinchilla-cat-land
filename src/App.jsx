@@ -55,7 +55,7 @@ export default function App() {
             onClick={() => setMenuOpen(false)}
             className="flex items-center gap-1.5 whitespace-nowrap text-lg font-black text-cocoa-900"
           >
-            <ChinchillaCat className="h-8 w-8" />
+            <ChinchillaCat variant="fluffy" className="h-8 w-8" />
             金吉拉樂園
           </NavLink>
 

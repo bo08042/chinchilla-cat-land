@@ -45,7 +45,7 @@ export default function Home() {
         </div>
 
         <div className="relative">
-          <ChinchillaCat className="mx-auto h-28 w-28 drop-shadow-sm sm:h-36 sm:w-36" />
+          <ChinchillaCat variant="fluffy" className="mx-auto h-28 w-28 drop-shadow-sm sm:h-36 sm:w-36" />
           <h1 className="mt-5 text-3xl font-black text-cocoa-900 sm:text-5xl">
             歡迎來到金吉拉樂園
           </h1>

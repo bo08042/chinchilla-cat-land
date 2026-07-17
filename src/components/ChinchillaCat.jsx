@@ -10,7 +10,7 @@
 //   'lying'   — 優雅趴姿版：慵懶趴姿 + 大蓬尾（參考舊站 hero2 照片）
 //   'portrait'— 真實臉型版：寬扁橢圓臉 + 不規則絲狀毛叢 + 內部毛流（最貼近真實照片；
 //               輪廓由 scratchpad 的 gen-realistic.mjs 腳本產生後貼入）
-// expression: 'happy'（預設）| 'surprised'（僅 classic 支援，404 等驚訝場景用）
+// expression: 'happy'（預設）| 'surprised'（classic 與 fluffy 支援，404 等驚訝場景用）
 
 const OUTLINE = '#cfc4b6'
 const SILVER = '#ded5c8'
@@ -96,7 +96,7 @@ function Classic({ expression }) {
   )
 }
 
-function Fluffy() {
+function Fluffy({ expression }) {
   return (
     <>
       <g stroke={OUTLINE} strokeWidth="3" strokeLinejoin="round">
@@ -139,17 +139,30 @@ function Fluffy() {
 
       <circle cx="44" cy="60" r="9" fill={EYE} stroke={EYE_RIM} strokeWidth="2.5" />
       <circle cx="76" cy="60" r="9" fill={EYE} stroke={EYE_RIM} strokeWidth="2.5" />
-      <ellipse cx="44" cy="61" rx="3.4" ry="5.4" fill={PUPIL} />
-      <ellipse cx="76" cy="61" rx="3.4" ry="5.4" fill={PUPIL} />
+      {expression === 'surprised' ? (
+        <g>
+          <circle cx="44" cy="60" r="3.8" fill={PUPIL} />
+          <circle cx="76" cy="60" r="3.8" fill={PUPIL} />
+        </g>
+      ) : (
+        <g>
+          <ellipse cx="44" cy="61" rx="3.4" ry="5.4" fill={PUPIL} />
+          <ellipse cx="76" cy="61" rx="3.4" ry="5.4" fill={PUPIL} />
+        </g>
+      )}
       <circle cx="41.5" cy="57" r="2.2" fill="#fff" />
       <circle cx="73.5" cy="57" r="2.2" fill="#fff" />
 
       <path d="M57 70 h6 l-3 4 z" fill={NOSE} stroke={NOSE_RIM} strokeWidth="1" strokeLinejoin="round" />
-      <g stroke={MOUTH} strokeWidth="2" strokeLinecap="round" fill="none">
-        <path d="M60 74 v3" />
-        <path d="M60 77 q-3.5 3.5 -7 1" />
-        <path d="M60 77 q3.5 3.5 7 1" />
-      </g>
+      {expression === 'surprised' ? (
+        <ellipse cx="60" cy="79" rx="3.2" ry="4" fill={MOUTH} />
+      ) : (
+        <g stroke={MOUTH} strokeWidth="2" strokeLinecap="round" fill="none">
+          <path d="M60 74 v3" />
+          <path d="M60 77 q-3.5 3.5 -7 1" />
+          <path d="M60 77 q3.5 3.5 7 1" />
+        </g>
+      )}
 
       <g stroke={WHISKER} strokeWidth="1.5" strokeLinecap="round">
         <line x1="24" y1="66" x2="6" y2="62" />
