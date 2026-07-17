@@ -6,6 +6,8 @@
 //   'fluffy'  — 蓬蓬大頭版：毛球更多更密、小耳半埋、扁臉五官
 //   'ruff'    — 優雅圍脖版：頭部 + 胸前大鬃毛圍脖
 //   'sitting' — 全身坐姿版：毛球身體、前腳與蓬尾
+//   'gentle'  — 恬靜肖像版：尖毛叢輪廓 + 溫柔杏仁眼 + 粉鼻（參考舊站照片神韻）
+//   'lying'   — 優雅趴姿版：慵懶趴姿 + 大蓬尾（參考舊站 hero2 照片）
 // expression: 'happy'（預設）| 'surprised'（僅 classic 支援，404 等驚訝場景用）
 
 const OUTLINE = '#cfc4b6'
@@ -311,11 +313,191 @@ function Sitting() {
   )
 }
 
+// 恬靜/趴姿版的照片感配色：柔和眼綠、粉鼻、銀影
+const SOFT_EYE = '#4f9468'
+const PINK_NOSE = '#d9968f'
+const PINK_NOSE_RIM = '#c8837c'
+const SOFT_MOUTH = '#8a7561'
+const SHADE = '#f1ebe0'
+
+function Gentle() {
+  return (
+    <>
+      <g stroke={OUTLINE} strokeWidth="3" strokeLinejoin="round">
+        <polygon points="32,38 37,17 52,29" fill="#fff" />
+        <polygon points="88,38 83,17 68,29" fill="#fff" />
+      </g>
+      <polygon points="38,32 40,23 48,28" fill={INNER_EAR} />
+      <polygon points="82,32 80,23 72,28" fill={INNER_EAR} />
+
+      {/* 尖毛叢輪廓 */}
+      <polygon
+        points="101,64 94,71 98,80 89,83 89,93 79,93 76,102 67,98 60,105 53,98 44,102 41,93 31,93 31,83 22,80 26,71 19,64 26,57 22,48 31,45 31,35 41,35 44,26 53,30 60,23 67,30 76,26 79,35 89,35 89,45 98,48 94,57"
+        fill="#fff"
+        stroke={OUTLINE}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+
+      {/* 銀色淡影 */}
+      <ellipse cx="60" cy="41" rx="11" ry="4.5" fill={SHADE} opacity="0.7" />
+      <ellipse cx="31" cy="64" rx="4.5" ry="8" fill={SHADE} opacity="0.8" />
+      <ellipse cx="89" cy="64" rx="4.5" ry="8" fill={SHADE} opacity="0.8" />
+      <g stroke={SILVER} strokeWidth="1.8" strokeLinecap="round" fill="none">
+        <path d="M52 34 l1 -7" />
+        <path d="M60 32 v-8" />
+        <path d="M68 34 l-1 -7" />
+        <path d="M31 88 l-4 5" />
+        <path d="M89 88 l4 5" />
+      </g>
+
+      {/* 溫柔杏仁眼 */}
+      <path
+        d="M37.5 60 Q45 52.5 52.5 60 Q45 68.5 37.5 60 z"
+        fill={SOFT_EYE}
+        stroke={EYE_RIM}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M67.5 60 Q75 52.5 82.5 60 Q75 68.5 67.5 60 z"
+        fill={SOFT_EYE}
+        stroke={EYE_RIM}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      <circle cx="45" cy="60.5" r="2.6" fill={PUPIL} />
+      <circle cx="75" cy="60.5" r="2.6" fill={PUPIL} />
+      <circle cx="43.5" cy="58.5" r="1.3" fill="#fff" />
+      <circle cx="73.5" cy="58.5" r="1.3" fill="#fff" />
+
+      <path d="M57.5 71 h5 l-2.5 3.5 z" fill={PINK_NOSE} stroke={PINK_NOSE_RIM} strokeWidth="0.8" strokeLinejoin="round" />
+      <g stroke={SOFT_MOUTH} strokeWidth="1.6" strokeLinecap="round" fill="none">
+        <path d="M60 74.5 v2.5" />
+        <path d="M60 77 q-3 2.5 -5.5 0.8" />
+        <path d="M60 77 q3 2.5 5.5 0.8" />
+      </g>
+
+      <g stroke={WHISKER} strokeWidth="1.3" strokeLinecap="round">
+        <line x1="30" y1="68" x2="8" y2="64" />
+        <line x1="30" y1="74" x2="9" y2="77" />
+        <line x1="33" y1="80" x2="14" y2="87" />
+        <line x1="90" y1="68" x2="112" y2="64" />
+        <line x1="90" y1="74" x2="111" y2="77" />
+        <line x1="87" y1="80" x2="106" y2="87" />
+      </g>
+    </>
+  )
+}
+
+function Lying() {
+  return (
+    <>
+      {/* 尾巴 */}
+      <g fill="#fff" stroke={OUTLINE} strokeWidth="3">
+        <circle cx="14" cy="86" r="9" />
+        <circle cx="25" cy="90" r="10" />
+        <circle cx="38" cy="92" r="10" />
+      </g>
+      <circle cx="20" cy="88" r="6" fill="#fff" />
+      <circle cx="32" cy="91" r="7" fill="#fff" />
+
+      {/* 身體 */}
+      <g fill="#fff" stroke={OUTLINE} strokeWidth="3">
+        <circle cx="42" cy="70" r="10" />
+        <circle cx="54" cy="65" r="10" />
+        <circle cx="66" cy="63" r="10" />
+        <circle cx="38" cy="82" r="10" />
+        <circle cx="48" cy="88" r="10" />
+        <circle cx="62" cy="91" r="10" />
+        <circle cx="76" cy="90" r="10" />
+      </g>
+      <ellipse cx="60" cy="78" rx="28" ry="16" fill="#fff" />
+
+      {/* 前腳 */}
+      <g fill="#fff" stroke={OUTLINE} strokeWidth="2.5">
+        <ellipse cx="97" cy="90" rx="8" ry="4.5" />
+        <ellipse cx="107" cy="85" rx="7" ry="4" />
+      </g>
+
+      <g stroke={OUTLINE} strokeWidth="3" strokeLinejoin="round">
+        <polygon points="73,38 77,21 90,29" fill="#fff" />
+        <polygon points="103,38 99,21 86,29" fill="#fff" />
+      </g>
+      <polygon points="77,32 79,25 85,29" fill={INNER_EAR} />
+      <polygon points="99,32 97,25 91,29" fill={INNER_EAR} />
+
+      {/* 頭部毛叢 */}
+      <g fill="#fff" stroke={OUTLINE} strokeWidth="3">
+        <circle cx="105" cy="52" r="8" />
+        <circle cx="100" cy="65" r="8" />
+        <circle cx="88" cy="70" r="8" />
+        <circle cx="76" cy="65" r="8" />
+        <circle cx="71" cy="52" r="8" />
+        <circle cx="76" cy="39" r="8" />
+        <circle cx="88" cy="34" r="8" />
+        <circle cx="100" cy="39" r="8" />
+      </g>
+      <circle cx="88" cy="52" r="19" fill="#fff" />
+
+      {/* 胸口蓬毛 */}
+      <g fill="#fff" stroke={OUTLINE} strokeWidth="2.5">
+        <circle cx="74" cy="73" r="6" />
+        <circle cx="82" cy="77" r="6" />
+      </g>
+      <circle cx="78" cy="75" r="4.5" fill="#fff" />
+
+      {/* 背部銀色毛流 */}
+      <g stroke={SILVER} strokeWidth="1.8" strokeLinecap="round" fill="none">
+        <path d="M46 64 q4 -3 8 -3" />
+        <path d="M58 60 q4 -2 8 -2" />
+        <path d="M40 78 q-3 3 -3 7" />
+      </g>
+
+      {/* 溫柔杏仁眼 */}
+      <path
+        d="M76.5 50 Q82 44.5 87.5 50 Q82 56 76.5 50 z"
+        fill={SOFT_EYE}
+        stroke={EYE_RIM}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M92.5 50 Q98 44.5 103.5 50 Q98 56 92.5 50 z"
+        fill={SOFT_EYE}
+        stroke={EYE_RIM}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="81" cy="50.5" r="2.2" fill={PUPIL} />
+      <circle cx="97" cy="50.5" r="2.2" fill={PUPIL} />
+      <circle cx="79.8" cy="49" r="1.1" fill="#fff" />
+      <circle cx="95.8" cy="49" r="1.1" fill="#fff" />
+
+      <path d="M87.5 58 h4.5 l-2.25 3 z" fill={PINK_NOSE} stroke={PINK_NOSE_RIM} strokeWidth="0.8" />
+      <g stroke={SOFT_MOUTH} strokeWidth="1.4" strokeLinecap="round" fill="none">
+        <path d="M89.7 61 v2" />
+        <path d="M89.7 63 q-2.5 2 -4.5 0.6" />
+        <path d="M89.7 63 q2.5 2 4.5 0.6" />
+      </g>
+
+      <g stroke={WHISKER} strokeWidth="1.2" strokeLinecap="round">
+        <line x1="74" y1="56" x2="58" y2="53" />
+        <line x1="74" y1="61" x2="59" y2="63" />
+        <line x1="102" y1="56" x2="116" y2="53" />
+        <line x1="102" y1="61" x2="115" y2="63" />
+      </g>
+    </>
+  )
+}
+
 const VARIANTS = {
   classic: Classic,
   fluffy: Fluffy,
   ruff: Ruff,
   sitting: Sitting,
+  gentle: Gentle,
+  lying: Lying,
 }
 
 export default function ChinchillaCat({
