@@ -42,3 +42,15 @@
     @apply inline-block rounded-full border-2 border-cocoa-200 bg-white px-6 py-2.5 font-bold text-cocoa-700 transition-all hover:-translate-y-0.5 hover:border-honey-400 hover:text-cocoa-900;
   }
 }
+
+/* 擲骰動畫：左右搖擺 + 上下彈跳 */
+@keyframes dice-shake {
+  0% { transform: translateY(0) rotate(-18deg); }
+  25% { transform: translateY(-14px) rotate(12deg); }
+  50% { transform: translateY(0) rotate(-8deg); }
+  75% { transform: translateY(-8px) rotate(16deg); }
+  100% { transform: translateY(0) rotate(-18deg); }
+}
+.animate-dice-shake {
+  animation: dice-shake 0.55s ease-in-out infinite;
+}
