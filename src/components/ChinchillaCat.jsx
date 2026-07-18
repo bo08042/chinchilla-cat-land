@@ -602,14 +602,25 @@ const VARIANTS = {
   portrait: Portrait,
 }
 
+// size：巢狀在其他 SVG 場景內使用時必須指定（例如 size={120}），
+// 否則巢狀 svg 會撐滿外層 viewport，讓 transform scale 的縮放基準跑掉。
+// 一般網頁使用維持用 className（h-8 w-8）控制大小即可。
 export default function ChinchillaCat({
   className = '',
   variant = 'classic',
   expression = 'happy',
+  size,
 }) {
   const Variant = VARIANTS[variant] ?? Classic
   return (
-    <svg viewBox="0 0 120 120" role="img" aria-label="金吉拉貓" className={className}>
+    <svg
+      viewBox="0 0 120 120"
+      width={size}
+      height={size}
+      role="img"
+      aria-label="金吉拉貓"
+      className={className}
+    >
       <Variant expression={expression} />
     </svg>
   )

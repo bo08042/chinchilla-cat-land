@@ -122,17 +122,25 @@ export default function Home() {
         </div>
         <div className="grid gap-5 sm:grid-cols-4">
           {(liveGames.length > 0 ? liveGames : games.filter((g) => g.wave === 1)).map(
-            (game) => (
-              <div key={game.id} className="card-sticker p-5 text-center">
-                <p className="text-3xl">{game.emoji}</p>
-                <h3 className="mt-2 font-bold text-cocoa-900">{game.title}</h3>
-                {game.status !== 'live' && (
+            (game) =>
+              game.status === 'live' ? (
+                <Link
+                  key={game.id}
+                  to={`/games/${game.id}`}
+                  className="card-sticker card-sticker-hover p-5 text-center"
+                >
+                  <p className="text-3xl">{game.emoji}</p>
+                  <h3 className="mt-2 font-bold text-cocoa-900">{game.title}</h3>
+                </Link>
+              ) : (
+                <div key={game.id} className="card-sticker p-5 text-center">
+                  <p className="text-3xl">{game.emoji}</p>
+                  <h3 className="mt-2 font-bold text-cocoa-900">{game.title}</h3>
                   <p className="mt-2 inline-block rounded-full bg-honey-300 px-2.5 py-0.5 text-xs font-bold text-cocoa-900">
                     即將登場
                   </p>
-                )}
-              </div>
-            ),
+                </div>
+              ),
           )}
         </div>
       </section>

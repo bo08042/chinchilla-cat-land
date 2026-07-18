@@ -9,7 +9,7 @@ export const games = [
     summary: '10 題知識測驗，看看你對金吉拉的了解夠不夠當一位大師！',
     emoji: '🎓',
     wave: 1,
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'care-exam',
@@ -17,7 +17,7 @@ export const games = [
     summary: '餵食與照顧情境題，測測你是不是合格的鏟屎官。',
     emoji: '📋',
     wave: 1,
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'fortune',
@@ -25,7 +25,7 @@ export const games = [
     summary: '每天擲一次骰子，讓金吉拉為你抽出今日運勢與幸運小語。',
     emoji: '🎲',
     wave: 1,
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'hide-and-seek',
@@ -33,7 +33,7 @@ export const games = [
     summary: '眼力大考驗！在客廳、公園場景裡找出所有躲起來的貓咪。',
     emoji: '🔍',
     wave: 1,
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'cat-blocks',
