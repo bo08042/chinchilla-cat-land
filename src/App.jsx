@@ -135,7 +135,7 @@ export default function App() {
               隱私權政策
             </NavLink>
           </div>
-          <p>© 2026 金吉拉樂園 Chinchilla Cat Land 🐾</p>
+          <p>© 2026 金吉拉樂園 Chinchilla Cat Land · Made with 🐾 by Lily Chen</p>
         </div>
       </footer>
     </div>
