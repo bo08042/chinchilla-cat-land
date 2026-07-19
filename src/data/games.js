@@ -30,7 +30,7 @@ export const games = [
   {
     id: 'hide-and-seek',
     title: '躲貓貓',
-    summary: '眼力大考驗！在客廳、公園場景裡找出所有躲起來的貓咪。',
+    summary: '眼力大考驗！從溫馨客廳找到月夜屋頂，四關卡揪出所有躲起來的貓咪。',
     emoji: '🔍',
     wave: 1,
     status: 'live',
