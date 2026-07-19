@@ -60,6 +60,7 @@ export default function FortuneGame() {
   const [rolling, setRolling] = useState(false)
   const [diceFace, setDiceFace] = useState(6)
   const [modal, setModal] = useState(null) // { icon, title, body }
+  const [preview, setPreview] = useState(null) // 圖片預覽（長按儲存用）的 object URL
   const shareRef = useRef(null)
 
   // 擲骰中：骰面快速輪替
@@ -97,35 +98,74 @@ export default function FortuneGame() {
     }
   }
 
-  // 把隱藏的分享卡 SVG 轉成 PNG 下載
-  function saveImage() {
-    const svgNode = shareRef.current
-    if (!svgNode) return
-    const xml = new XMLSerializer().serializeToString(svgNode)
-    const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(xml)}`
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = 720
-      canvas.height = 960
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(img, 0, 0, 720, 960)
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          setModal({ icon: '😿', title: '存圖失敗', body: '你的瀏覽器不支援圖片輸出，改用複製分享吧！' })
-          return
-        }
-        const a = document.createElement('a')
-        a.href = URL.createObjectURL(blob)
-        a.download = `金吉拉運勢-${todayStr()}.png`
-        a.click()
-        URL.revokeObjectURL(a.href)
-        setModal({ icon: '🖼️', title: '圖片已下載！', body: '運勢卡已存到你的下載資料夾。' })
-      }, 'image/png')
-    }
-    img.onerror = () =>
+  // 把隱藏的分享卡 SVG 轉成 PNG Blob
+  function generateImageBlob() {
+    return new Promise((resolve, reject) => {
+      const svgNode = shareRef.current
+      if (!svgNode) return reject(new Error('no svg node'))
+      const xml = new XMLSerializer().serializeToString(svgNode)
+      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(xml)}`
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = 720
+        canvas.height = 960
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, 720, 960)
+        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('toBlob failed'))), 'image/png')
+      }
+      img.onerror = () => reject(new Error('image load failed'))
+      img.src = svgUrl
+    })
+  }
+
+  // 存圖策略：
+  // 1. 支援檔案分享（多數手機瀏覽器）→ 呼叫系統分享面板，使用者可選「儲存影像」存進相簿
+  // 2. 觸控裝置但不支援分享 → 顯示大圖預覽彈窗，讓使用者長按圖片另存
+  // 3. 桌面瀏覽器 → 直接下載 PNG 檔
+  async function saveImage() {
+    let blob
+    try {
+      blob = await generateImageBlob()
+    } catch {
       setModal({ icon: '😿', title: '存圖失敗', body: '圖片產生失敗，改用複製分享吧！' })
-    img.src = svgUrl
+      return
+    }
+    const filename = `金吉拉運勢-${todayStr()}.png`
+    const file = new File([blob], filename, { type: 'image/png' })
+
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: '金吉拉樂園・今日運勢',
+          text: '快來看看金吉拉幫我抽的今日運勢！',
+        })
+      } catch (err) {
+        if (err?.name !== 'AbortError') {
+          setModal({ icon: '😿', title: '分享失敗', body: '請改用長按圖片儲存，或複製文字分享。' })
+        }
+      }
+      return
+    }
+
+    const isTouch = window.matchMedia?.('(pointer: coarse)').matches
+    if (isTouch) {
+      setPreview(URL.createObjectURL(blob))
+      return
+    }
+
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(a.href)
+    setModal({ icon: '🖼️', title: '圖片已下載！', body: '運勢卡已存到你的下載資料夾。' })
+  }
+
+  function closePreview() {
+    if (preview) URL.revokeObjectURL(preview)
+    setPreview(null)
   }
 
   /* ---------- 未抽：擲骰畫面 ---------- */
@@ -192,7 +232,7 @@ export default function FortuneGame() {
             📋 複製文字
           </button>
           <button onClick={saveImage} className="btn-outline text-sm">
-            🖼️ 儲存圖片
+            🖼️ 存/分享圖片
           </button>
         </div>
         <p className="mt-4 text-xs text-cocoa-500">明天再來抽新的運勢吧！</p>
@@ -249,6 +289,34 @@ export default function FortuneGame() {
       >
         <p className="whitespace-pre-wrap">{modal?.body}</p>
       </Modal>
+
+      {/* 圖片預覽：手機無分享 API 時，長按圖片另存到相簿 */}
+      {preview && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-cocoa-900/60 p-4"
+          onClick={closePreview}
+          role="dialog"
+          aria-modal="true"
+          aria-label="運勢卡圖片預覽"
+        >
+          <div
+            className="card-sticker w-full max-w-xs p-4 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-bold text-cocoa-700">
+              👇 長按下方圖片，選擇「儲存圖片」即可存到手機相簿
+            </p>
+            <img
+              src={preview}
+              alt="今日運勢卡"
+              className="mt-3 w-full rounded-2xl border-2 border-cocoa-200"
+            />
+            <button onClick={closePreview} className="btn-honey mt-4 w-full">
+              關閉
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )
 }
