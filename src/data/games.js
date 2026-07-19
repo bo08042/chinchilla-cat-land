@@ -49,7 +49,7 @@ export const games = [
     summary: '陪金吉拉出門散步，每個選擇都通往不同的結局。',
     emoji: '🏙️',
     wave: 2,
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'adventure',

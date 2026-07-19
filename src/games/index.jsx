@@ -2,6 +2,7 @@ import QuizGame from './quiz/QuizGame'
 import FortuneGame from './fortune/FortuneGame'
 import HideAndSeekGame from './hide-and-seek/HideAndSeekGame'
 import CatBlocksGame from './cat-blocks/CatBlocksGame'
+import CityWalkGame from './city-walk/CityWalkGame'
 
 // 已上線遊戲的路由登錄：id 對應 data/games.js 與網址 /games/:gameId。
 // element 為遊戲內容，instructions 顯示在 GameShell 的玩法說明彈窗。
@@ -46,6 +47,17 @@ export const gameRoutes = {
         <p>3. 消行累積 ⚡ 能量，集滿可施放道具：🎣 逗貓棒（換方塊）、🥫 罐罐時間（減速 10 秒）、🧹 除毛神器（清底部 3 行）。</p>
         <p>4. 電腦用方向鍵＋空白鍵、P 暫停、1/2/3 放道具；手機用畫面按鈕。</p>
         <p>5. 方塊堆到頂就結束，挑戰你的最高分！（音效可用 🔊 按鈕開關）</p>
+      </>
+    ),
+  },
+  'city-walk': {
+    element: <CityWalkGame />,
+    instructions: (
+      <>
+        <p>1. 陪金吉拉散步 8 個路口，每個路口都有隨機事件與選擇。</p>
+        <p>2. 選擇會累積 🔍 好奇、🍙 飽足、💪 勇氣三種屬性；部分選項需要屬性達標才能解鎖。</p>
+        <p>3. 散步結束時依累積的屬性走向不同結局，收集全部 5 種結局吧！</p>
+        <p>4. 聽說在小巷裡幫助弱小，會開啟隱藏結局……</p>
       </>
     ),
   },
