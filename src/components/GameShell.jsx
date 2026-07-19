@@ -20,11 +20,11 @@ export default function GameShell({ title, emoji, instructions, children }) {
         </button>
       </div>
 
-      <h1 className="mt-4 text-center text-2xl font-black text-cocoa-900">
+      <h1 className="mt-2 text-center text-xl font-black text-cocoa-900 sm:mt-4 sm:text-2xl">
         {emoji} {title}
       </h1>
 
-      <div className="mt-6">{children}</div>
+      <div className="mt-3 sm:mt-6">{children}</div>
 
       {/* 玩法說明彈窗 */}
       {showHelp && (

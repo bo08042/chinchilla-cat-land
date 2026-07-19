@@ -45,7 +45,7 @@
 
 /* 貓咪方塊棋盤：手機以視窗高度為限，桌面放大 */
 .catblocks-board {
-  height: min(50vh, 430px);
+  height: min(54vh, 460px);
   width: auto;
   touch-action: none;
 }

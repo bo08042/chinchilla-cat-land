@@ -109,7 +109,7 @@ export default function App() {
         )}
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:py-10">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/knowledge" element={<Knowledge />} />
