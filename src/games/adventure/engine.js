@@ -31,8 +31,20 @@ export function rollDice() {
   return Math.ceil(Math.random() * 6)
 }
 
-export function pickEventCard() {
-  return EVENT_CARDS[Math.floor(Math.random() * EVENT_CARDS.length)]
+// 不放回抽牌：回傳洗過牌的整副事件卡，抽完換下一副（見 AdventureGame 的 drawEventCard）
+export function shuffledEventDeck() {
+  const deck = [...EVENT_CARDS]
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[deck[i], deck[j]] = [deck[j], deck[i]]
+  }
+  return deck
+}
+
+// 找出與 p 同格的其他玩家 index（起點格排除，找不到回傳 -1）
+export function findEncounter(positions, p) {
+  if (positions[p] === 0) return -1
+  return positions.findIndex((pos, i) => i !== p && pos === positions[p])
 }
 
 // 從兩套測驗題庫隨機抽一題（選項洗牌）
