@@ -141,3 +141,10 @@ export function levelFor(lines) {
 export function dropInterval(level) {
   return Math.max(120, 800 - (level - 1) * 70)
 }
+
+// 道具「除毛神器」：清除底部 n 行，上方補空行
+export function clearBottomRows(board, n) {
+  const kept = board.slice(0, ROWS - n)
+  const empties = Array.from({ length: n }, () => Array(COLS).fill(0))
+  return [...empties, ...kept]
+}

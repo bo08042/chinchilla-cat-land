@@ -43,6 +43,18 @@
   }
 }
 
+/* 貓咪方塊棋盤：手機以視窗高度為限，桌面放大 */
+.catblocks-board {
+  height: min(45vh, 380px);
+  width: auto;
+  touch-action: none;
+}
+@media (min-width: 640px) {
+  .catblocks-board {
+    height: min(74vh, 600px);
+  }
+}
+
 /* 擲骰動畫：左右搖擺 + 上下彈跳 */
 @keyframes dice-shake {
   0% { transform: translateY(0) rotate(-18deg); }
