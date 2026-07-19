@@ -3,6 +3,7 @@ import FortuneGame from './fortune/FortuneGame'
 import HideAndSeekGame from './hide-and-seek/HideAndSeekGame'
 import CatBlocksGame from './cat-blocks/CatBlocksGame'
 import CityWalkGame from './city-walk/CityWalkGame'
+import AdventureGame from './adventure/AdventureGame'
 
 // 已上線遊戲的路由登錄：id 對應 data/games.js 與網址 /games/:gameId。
 // element 為遊戲內容，instructions 顯示在 GameShell 的玩法說明彈窗。
@@ -47,6 +48,17 @@ export const gameRoutes = {
         <p>3. 消行累積 ⚡ 能量，集滿可施放道具：🎣 逗貓棒（換方塊）、🥫 罐罐時間（減速 10 秒）、🧹 除毛神器（清底部 3 行）。</p>
         <p>4. 電腦用方向鍵＋空白鍵、P 暫停、1/2/3 放道具；手機用畫面按鈕。</p>
         <p>5. 方塊堆到頂就結束，挑戰你的最高分！（音效可用 🔊 按鈕開關）</p>
+      </>
+    ),
+  },
+  adventure: {
+    element: <AdventureGame />,
+    instructions: (
+      <>
+        <p>1. 你是金吉拉，和布偶貓妞妞、柴犬旺旺輪流擲骰子在棋盤上前進。</p>
+        <p>2. 點心格得小魚乾、事件格抽卡、機會格回答金吉拉知識題（答對 +6）、午睡格休息一回合、衝刺格往前衝。</p>
+        <p>3. 每經過起點 +5 🐟 並完成一圈；有人跑完 3 圈後該輪結束就結算。</p>
+        <p>4. 小魚乾最多的獲勝，累積你的勝場紀錄吧！</p>
       </>
     ),
   },

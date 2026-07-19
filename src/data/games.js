@@ -57,6 +57,6 @@ export const games = [
     summary: '擲骰前進的桌遊大冒險，和好朋友比賽收集小魚乾！',
     emoji: '🎯',
     wave: 3,
-    status: 'coming-soon',
+    status: 'live',
   },
 ]
