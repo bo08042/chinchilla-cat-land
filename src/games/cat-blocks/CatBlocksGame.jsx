@@ -365,23 +365,26 @@ export default function CatBlocksGame() {
 
   return (
     <div className="flex flex-col items-center">
-      {/* 手機版資訊列 */}
-      <div className="mb-2 flex w-full max-w-80 items-stretch justify-center gap-2 sm:hidden">
-        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center">
-          <p className="text-[10px] font-bold text-cocoa-500">分數</p>
-          <p className="text-sm font-black text-honey-600">{ui.score.toLocaleString()}</p>
-          <p className="text-[10px] text-cocoa-500">🏆 {highScore.toLocaleString()}</p>
+      {/* 資訊列（全尺寸）：分數 / 等級 / 能量；手機額外塞下一個與吉祥物 */}
+      <div className="mb-2 flex w-full max-w-80 items-stretch justify-center gap-2 sm:mb-4 sm:max-w-xl">
+        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center sm:px-4 sm:py-2.5">
+          <p className="text-[10px] font-bold text-cocoa-500 sm:text-xs">分數</p>
+          <p className="text-sm font-black text-honey-600 sm:text-2xl">{ui.score.toLocaleString()}</p>
+          <p className="text-[10px] text-cocoa-500 sm:text-xs">🏆 {highScore.toLocaleString()}</p>
         </div>
-        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center">
-          <p className="text-[10px] font-bold text-cocoa-500">等級 {ui.level}</p>
-          <p className="text-sm font-black text-cocoa-800">{ui.lines} 行</p>
-          <p className="text-[10px] text-cocoa-500">⚡ {ui.energy}</p>
+        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center sm:px-4 sm:py-2.5">
+          <p className="text-[10px] font-bold text-cocoa-500 sm:text-xs">等級 {ui.level}</p>
+          <p className="text-sm font-black text-cocoa-800 sm:text-2xl">{ui.lines} 行</p>
         </div>
-        <div className="card-sticker !rounded-xl px-2 py-1.5 text-center">
+        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center sm:px-4 sm:py-2.5">
+          <p className="text-[10px] font-bold text-cocoa-500 sm:text-xs">能量</p>
+          <p className="text-sm font-black text-emerald-700 sm:text-2xl">⚡ {ui.energy}</p>
+        </div>
+        <div className="card-sticker !rounded-xl px-2 py-1.5 text-center sm:hidden">
           <p className="text-[10px] font-bold text-cocoa-500">下一個</p>
           <canvas ref={nextRefMobile} width="96" height="96" className="mx-auto h-9 w-9" />
         </div>
-        <div className="relative flex items-end justify-center px-1">
+        <div className="relative flex items-end justify-center px-1 sm:hidden">
           <ChinchillaCat variant="sitting" size={44} />
           {reaction && (
             <p
@@ -453,15 +456,6 @@ export default function CatBlocksGame() {
 
         {/* 桌面版側欄 */}
         <div className="hidden w-44 flex-col gap-3 sm:flex">
-          <div className="card-sticker p-3 text-center">
-            <p className="text-xs font-bold text-cocoa-500">分數</p>
-            <p className="text-xl font-black text-honey-600">{ui.score.toLocaleString()}</p>
-            <p className="mt-1 text-xs text-cocoa-500">🏆 {highScore.toLocaleString()}</p>
-          </div>
-          <div className="card-sticker p-3 text-center">
-            <p className="text-xs font-bold text-cocoa-500">等級 {ui.level}｜已消 {ui.lines} 行</p>
-            <p className="mt-1 text-sm font-black text-cocoa-800">⚡ 能量 {ui.energy}</p>
-          </div>
           <div className="card-sticker p-3 text-center">
             <p className="text-xs font-bold text-cocoa-500">下一個</p>
             <canvas ref={nextRef} width="96" height="96" className="mx-auto mt-1 h-20 w-20" />
