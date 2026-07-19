@@ -26,6 +26,7 @@ const REACTIONS = { 1: '喵！', 2: '喵喵！', 3: '太厲害了喵！', 4: '�
 export default function CatBlocksGame() {
   const canvasRef = useRef(null)
   const nextRef = useRef(null)
+  const nextRefMobile = useRef(null)
   // 遊戲狀態放 ref（高頻更新不觸發 re-render），UI 顯示值另外鏡射到 state
   const g = useRef(null)
   const timerRef = useRef(null)
@@ -115,23 +116,25 @@ export default function CatBlocksGame() {
   }
 
   function drawNext() {
-    const canvas = nextRef.current
-    if (!canvas || !ui.next) return
-    const ctx = canvas.getContext('2d')
-    ctx.fillStyle = '#fffbf0'
-    ctx.fillRect(0, 0, 96, 96)
-    const probe = { type: ui.next, rot: 0, x: 0, y: 0 }
-    const cells = cellsOf(probe)
-    const minX = Math.min(...cells.map(([x]) => x))
-    const maxX = Math.max(...cells.map(([x]) => x))
-    const minY = Math.min(...cells.map(([, y]) => y))
-    const maxY = Math.max(...cells.map(([, y]) => y))
-    const offX = (96 - (maxX - minX + 1) * CELL) / 2 - minX * CELL
-    const offY = (96 - (maxY - minY + 1) * CELL) / 2 - minY * CELL
-    ctx.save()
-    ctx.translate(offX, offY)
-    for (const [x, y] of cells) drawCell(ctx, x, y, ui.next)
-    ctx.restore()
+    if (!ui.next) return
+    for (const canvas of [nextRef.current, nextRefMobile.current]) {
+      if (!canvas) continue
+      const ctx = canvas.getContext('2d')
+      ctx.fillStyle = '#fffbf0'
+      ctx.fillRect(0, 0, 96, 96)
+      const probe = { type: ui.next, rot: 0, x: 0, y: 0 }
+      const cells = cellsOf(probe)
+      const minX = Math.min(...cells.map(([x]) => x))
+      const maxX = Math.max(...cells.map(([x]) => x))
+      const minY = Math.min(...cells.map(([, y]) => y))
+      const maxY = Math.max(...cells.map(([, y]) => y))
+      const offX = (96 - (maxX - minX + 1) * CELL) / 2 - minX * CELL
+      const offY = (96 - (maxY - minY + 1) * CELL) / 2 - minY * CELL
+      ctx.save()
+      ctx.translate(offX, offY)
+      for (const [x, y] of cells) drawCell(ctx, x, y, ui.next)
+      ctx.restore()
+    }
   }
 
   useEffect(drawNext, [ui.next])
@@ -254,8 +257,36 @@ export default function CatBlocksGame() {
     'rounded-2xl border-2 border-cocoa-200 bg-white px-4 py-2.5 text-xl font-black text-cocoa-800 active:bg-honey-300 select-none'
 
   return (
-    <div>
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-center">
+    <div className="flex flex-col items-center">
+      {/* 手機版資訊列：分數/等級/下一個/吉祥物 一列排在棋盤上方 */}
+      <div className="mb-2 flex w-full max-w-72 items-stretch justify-center gap-2 sm:hidden">
+        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center">
+          <p className="text-[10px] font-bold text-cocoa-500">分數</p>
+          <p className="text-sm font-black text-honey-600">{ui.score.toLocaleString()}</p>
+          <p className="text-[10px] text-cocoa-500">🏆 {highScore.toLocaleString()}</p>
+        </div>
+        <div className="card-sticker flex-1 !rounded-xl px-2 py-1.5 text-center">
+          <p className="text-[10px] font-bold text-cocoa-500">等級 {ui.level}</p>
+          <p className="text-sm font-black text-cocoa-800">{ui.lines} 行</p>
+        </div>
+        <div className="card-sticker !rounded-xl px-2 py-1.5 text-center">
+          <p className="text-[10px] font-bold text-cocoa-500">下一個</p>
+          <canvas ref={nextRefMobile} width="96" height="96" className="mx-auto h-9 w-9" />
+        </div>
+        <div className="relative flex items-end justify-center px-1">
+          <ChinchillaCat variant="sitting" size={44} />
+          {reaction && (
+            <p
+              key={reaction.key}
+              className="absolute -top-3 left-1/2 -translate-x-1/2 animate-bounce rounded-full bg-honey-300 px-2 py-0.5 text-[10px] font-black whitespace-nowrap text-cocoa-900"
+            >
+              {reaction.text}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:justify-center sm:gap-5">
         {/* 棋盤 */}
         <div className="relative">
           <canvas
@@ -263,7 +294,7 @@ export default function CatBlocksGame() {
             width={W}
             height={H}
             className="card-sticker !rounded-2xl"
-            style={{ width: 'min(70vw, 280px)', height: 'auto', touchAction: 'none' }}
+            style={{ height: 'min(52vh, 480px)', width: 'auto', touchAction: 'none' }}
           />
           {/* 開始 / 暫停 / 結束 覆蓋層 */}
           {phase !== 'playing' && (
@@ -304,14 +335,14 @@ export default function CatBlocksGame() {
           )}
         </div>
 
-        {/* 側欄 */}
-        <div className="flex w-full max-w-56 flex-row flex-wrap justify-center gap-3 sm:w-40 sm:flex-col">
-          <div className="card-sticker flex-1 p-3 text-center sm:flex-none">
+        {/* 桌面版側欄 */}
+        <div className="hidden w-40 flex-col gap-3 sm:flex">
+          <div className="card-sticker p-3 text-center">
             <p className="text-xs font-bold text-cocoa-500">分數</p>
             <p className="text-xl font-black text-honey-600">{ui.score.toLocaleString()}</p>
             <p className="mt-1 text-xs text-cocoa-500">🏆 {highScore.toLocaleString()}</p>
           </div>
-          <div className="card-sticker flex-1 p-3 text-center sm:flex-none">
+          <div className="card-sticker p-3 text-center">
             <p className="text-xs font-bold text-cocoa-500">等級 {ui.level}</p>
             <p className="text-sm font-bold text-cocoa-800">已消 {ui.lines} 行</p>
           </div>
@@ -319,7 +350,7 @@ export default function CatBlocksGame() {
             <p className="text-xs font-bold text-cocoa-500">下一個</p>
             <canvas ref={nextRef} width="96" height="96" className="mx-auto mt-1 h-20 w-20" />
           </div>
-          <div className="relative hidden p-2 text-center sm:block">
+          <div className="relative p-2 text-center">
             <ChinchillaCat variant="sitting" className="mx-auto h-20 w-20" />
             {reaction && (
               <p
@@ -338,16 +369,25 @@ export default function CatBlocksGame() {
         </div>
       </div>
 
-      {/* 觸控按鈕 */}
-      <div className="mt-5 flex justify-center gap-3">
+      {/* 觸控按鈕：緊貼棋盤下方 */}
+      <div className="mt-3 flex items-center justify-center gap-2.5">
         <button className={ctrlBtn} onClick={() => act('left')} aria-label="左移">◀</button>
         <button className={ctrlBtn} onClick={() => act('rotate')} aria-label="旋轉">🔄</button>
         <button className={ctrlBtn} onClick={() => act('down')} aria-label="下移">▼</button>
         <button className={ctrlBtn} onClick={() => act('drop')} aria-label="直接落下">⤓</button>
         <button className={ctrlBtn} onClick={() => act('right')} aria-label="右移">▶</button>
+        {phase === 'playing' && (
+          <button
+            onClick={() => setPhase('paused')}
+            className="rounded-2xl border-2 border-cocoa-200 bg-white px-3 py-2.5 text-sm font-black text-cocoa-800 select-none sm:hidden"
+            aria-label="暫停"
+          >
+            ⏸
+          </button>
+        )}
       </div>
       <p className="mt-3 text-center text-xs text-cocoa-500">
-        電腦：方向鍵移動/旋轉、空白鍵直接落下、P 暫停｜手機：用上面的按鈕
+        電腦：方向鍵移動/旋轉、空白鍵直接落下、P 暫停｜手機：用棋盤下方按鈕
       </p>
     </div>
   )
