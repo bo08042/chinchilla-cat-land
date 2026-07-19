@@ -1,6 +1,7 @@
 import QuizGame from './quiz/QuizGame'
 import FortuneGame from './fortune/FortuneGame'
 import HideAndSeekGame from './hide-and-seek/HideAndSeekGame'
+import CatBlocksGame from './cat-blocks/CatBlocksGame'
 
 // 已上線遊戲的路由登錄：id 對應 data/games.js 與網址 /games/:gameId。
 // element 為遊戲內容，instructions 顯示在 GameShell 的玩法說明彈窗。
@@ -33,6 +34,17 @@ export const gameRoutes = {
         <p>1. 每天限抽一次，點骰子讓金吉拉為你抽出今日運勢。</p>
         <p>2. 運勢從大吉到小凶共 6 級，附貓咪籤詩與今日宜忌。</p>
         <p>3. 可以複製結果分享給朋友，明天再來抽新的！</p>
+      </>
+    ),
+  },
+  'cat-blocks': {
+    element: <CatBlocksGame />,
+    instructions: (
+      <>
+        <p>1. 經典方塊玩法：移動、旋轉落下的貓咪方塊，填滿一整行就消除。</p>
+        <p>2. 一次消越多行分數越高，每消 10 行升一級、掉落越來越快。</p>
+        <p>3. 電腦用方向鍵＋空白鍵（直接落下）、P 暫停；手機用畫面下方按鈕。</p>
+        <p>4. 方塊堆到頂就結束，挑戰你的最高分！</p>
       </>
     ),
   },

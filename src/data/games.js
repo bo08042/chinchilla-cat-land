@@ -41,7 +41,7 @@ export const games = [
     summary: '貓主題的經典方塊消除遊戲，魚乾、毛球、貓掌通通落下來！',
     emoji: '🧩',
     wave: 2,
-    status: 'coming-soon',
+    status: 'live',
   },
   {
     id: 'city-walk',
