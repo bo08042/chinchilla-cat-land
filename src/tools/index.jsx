@@ -22,7 +22,7 @@ export const tools = [
     id: 'name-generator',
     emoji: '✨',
     title: '貓咪取名產生器',
-    summary: '可愛系、貴族系、食物系……隨機產生適合你家貓咪的名字。',
+    summary: '可愛、貴族、中二、復古……八種風格隨機產生適合你家貓咪的名字。',
     element: <NameGenerator />,
   },
 ]
