@@ -1,5 +1,6 @@
 import { getArticle } from './content/articles'
 import { games } from './data/games'
+import { tools } from './tools'
 
 export const SITE = {
   name: '金吉拉樂園 Chinchilla Cat Land',
@@ -57,6 +58,17 @@ export function getMeta(pathname) {
       return {
         title: `${game.title}｜${SITE.name}`,
         description: game.summary,
+      }
+    }
+  }
+
+  const toolMatch = /^\/tools\/([^/]+)$/.exec(path)
+  if (toolMatch) {
+    const tool = tools.find((t) => t.id === toolMatch[1])
+    if (tool) {
+      return {
+        title: `${tool.title}｜${SITE.name}`,
+        description: tool.summary,
       }
     }
   }

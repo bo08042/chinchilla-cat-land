@@ -10,6 +10,7 @@ import Article from './pages/Article'
 import Games from './pages/Games'
 import GamePage from './pages/GamePage'
 import Tools from './pages/Tools'
+import ToolPage from './pages/ToolPage'
 import About from './pages/About'
 import Privacy from './pages/Privacy'
 
@@ -116,6 +117,7 @@ export default function App() {
           <Route path="/games" element={<Games />} />
           <Route path="/games/:gameId" element={<GamePage />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/tools/:toolId" element={<ToolPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
