@@ -4,6 +4,7 @@ import HideAndSeekGame from './hide-and-seek/HideAndSeekGame'
 import CatBlocksGame from './cat-blocks/CatBlocksGame'
 import CityWalkGame from './city-walk/CityWalkGame'
 import AdventureGame from './adventure/AdventureGame'
+import GreedyCatGame from './greedy-cat/GreedyCatGame'
 
 // 已上線遊戲的路由登錄：id 對應 data/games.js 與網址 /games/:gameId。
 // element 為遊戲內容，instructions 顯示在 GameShell 的玩法說明彈窗。
@@ -70,6 +71,17 @@ export const gameRoutes = {
         <p>2. 選擇會累積 🔍 好奇、🍙 飽足、💪 勇氣三種屬性；部分選項需要屬性達標才能解鎖。</p>
         <p>3. 散步結束時依累積的屬性走向不同結局，收集全部 5 種結局吧！</p>
         <p>4. 聽說在小巷裡幫助弱小，會開啟隱藏結局……</p>
+      </>
+    ),
+  },
+  'greedy-cat': {
+    element: <GreedyCatGame />,
+    instructions: (
+      <>
+        <p>1. 操控貪吃的金吉拉毛毛蟲，吃到魚乾 🐟 就會變長、分數 +1。</p>
+        <p>2. 撞到牆壁或自己的身體就遊戲結束，小心別轉錯方向！</p>
+        <p>3. 每吃 5 條魚乾會出現限時的金色魚乾，吃到 +5 分並長更多，但要手腳快，太晚吃會消失。</p>
+        <p>4. 身體越長、分數越高，速度就會越快！電腦用方向鍵，手機用畫面下方的方向鈕。</p>
       </>
     ),
   },

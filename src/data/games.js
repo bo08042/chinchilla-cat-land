@@ -59,4 +59,12 @@ export const games = [
     wave: 3,
     status: 'live',
   },
+  {
+    id: 'greedy-cat',
+    title: '貪吃貓',
+    summary: '操控毛毛蟲一樣的金吉拉吃魚乾長大，別撞到牆壁或自己的尾巴！',
+    emoji: '🐟',
+    wave: 3,
+    status: 'live',
+  },
 ]

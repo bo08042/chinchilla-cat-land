@@ -55,6 +55,18 @@
   }
 }
 
+/* 貪吃貓棋盤：正方形，寬度為限、桌面放大 */
+.greedycat-board {
+  width: min(88vw, 380px);
+  aspect-ratio: 1 / 1;
+  touch-action: none;
+}
+@media (min-width: 640px) {
+  .greedycat-board {
+    width: min(56vh, 460px);
+  }
+}
+
 /* 擲骰動畫：左右搖擺 + 上下彈跳 */
 @keyframes dice-shake {
   0% { transform: translateY(0) rotate(-18deg); }
