@@ -3,14 +3,15 @@ import ChinchillaCat from '../../components/ChinchillaCat'
 import Joystick from '../../components/Joystick'
 import { load, save } from '../../services/storageService'
 import {
-  GRID, GOLDEN_EVERY, GOLDEN_TICKS, createSnake, isOpposite, nextHead,
-  samePos, outOfBounds, hitsBody, advance, randomCell, tickInterval,
+  GRID, GOLDEN_EVERY, GOLDEN_TICKS, MODES, MODE_ORDER, createSnake, isOpposite,
+  nextHead, samePos, outOfBounds, hitsBody, advance, randomCell, tickInterval,
 } from './engine'
 import { initSound, setMuted, sfx } from './sound'
 
 const CELL = 20
 const BOARD = GRID * CELL // 內部繪圖解析度（畫面顯示大小由 CSS .greedycat-board 響應式控制）
 const HEAD_SIZE_PCT = 9.6 // 頭部覆蓋層佔棋盤寬度的百分比
+const DEFAULT_STORE = { highScores: { easy: 0, medium: 0, hard: 0 }, soundOn: true }
 
 export default function GreedyCatGame() {
   const canvasRef = useRef(null)
@@ -19,8 +20,11 @@ export default function GreedyCatGame() {
 
   const [phase, setPhase] = useState('ready') // ready | playing | over
   const [ui, setUi] = useState({ score: 0, head: { x: 9, y: 9 } })
-  const [highScore, setHighScore] = useState(() => load('greedyCat', { highScore: 0 }).highScore)
-  const [soundOn, setSoundOn] = useState(() => load('greedyCat', { highScore: 0 }).soundOn ?? true)
+  const [highScores, setHighScores] = useState(() => ({
+    ...DEFAULT_STORE.highScores,
+    ...load('greedyCat', DEFAULT_STORE).highScores,
+  }))
+  const [soundOn, setSoundOn] = useState(() => load('greedyCat', DEFAULT_STORE).soundOn ?? true)
 
   useEffect(() => {
     setMuted(!soundOn)
@@ -29,12 +33,13 @@ export default function GreedyCatGame() {
   function toggleSound() {
     const next = !soundOn
     setSoundOn(next)
-    save('greedyCat', { ...load('greedyCat', { highScore: 0 }), soundOn: next })
+    save('greedyCat', { ...load('greedyCat', DEFAULT_STORE), soundOn: next })
   }
 
-  function initGame() {
+  function initGame(mode) {
     const snake = createSnake()
     g.current = {
+      mode,
       snake,
       dir: 'right',
       queuedDir: 'right',
@@ -47,9 +52,9 @@ export default function GreedyCatGame() {
     setUi({ score: 0, head: snake[0] })
   }
 
-  function start() {
+  function start(modeId) {
     initSound()
-    initGame()
+    initGame(MODES[modeId] ?? MODES.medium)
     setPhase('playing')
     setTimeout(draw, 0)
   }
@@ -184,17 +189,20 @@ export default function GreedyCatGame() {
     clearInterval(timerRef.current)
     sfx.gameOver()
     const finalScore = g.current.score
-    if (finalScore > highScore) {
-      setHighScore(finalScore)
-      save('greedyCat', { ...load('greedyCat', { highScore: 0 }), highScore: finalScore })
-    }
+    const modeId = g.current.mode.id
+    setHighScores((prev) => {
+      if (finalScore <= (prev[modeId] ?? 0)) return prev
+      const next = { ...prev, [modeId]: finalScore }
+      save('greedyCat', { ...load('greedyCat', DEFAULT_STORE), highScores: next })
+      return next
+    })
     setPhase('over')
   }
 
   // 速度隨分數提升；分數變化時才重新訂閱（不是每個 tick 都重訂）
   useEffect(() => {
     if (phase !== 'playing') return
-    timerRef.current = setInterval(tick, tickInterval(ui.score))
+    timerRef.current = setInterval(tick, tickInterval(ui.score, g.current.mode))
     return () => clearInterval(timerRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, ui.score])
@@ -233,26 +241,42 @@ export default function GreedyCatGame() {
           操控貪吃的金吉拉毛毛蟲，吃魚乾長大！小心別撞到牆壁或自己的身體。
           偶爾會出現閃閃發光的金色魚乾，手腳要快才吃得到！
         </p>
-        {highScore > 0 && (
-          <p className="mt-3 text-sm text-cocoa-500">
-            最高分：<span className="font-black text-honey-600">{highScore}</span>
-          </p>
-        )}
-        <button onClick={start} className="btn-honey mt-6">
-          🐟 開始遊戲！
-        </button>
+        <p className="mt-4 text-sm font-bold text-cocoa-700">選擇難度開始：</p>
+        <div className="mx-auto mt-3 grid max-w-xs gap-2">
+          {MODE_ORDER.map((modeId) => {
+            const mode = MODES[modeId]
+            const best = highScores[modeId] ?? 0
+            return (
+              <button
+                key={modeId}
+                onClick={() => start(modeId)}
+                className="card-sticker card-sticker-hover flex items-center justify-between px-4 py-3 text-left"
+              >
+                <span className="flex items-center gap-2 font-black text-cocoa-900">
+                  <span className="text-2xl">{mode.emoji}</span>
+                  {mode.label}
+                </span>
+                <span className="text-xs text-cocoa-500">{best > 0 ? `🏆 ${best}` : '尚未挑戰'}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
     )
   }
 
+  const mode = g.current.mode
   const headPct = {
     left: ((ui.head.x + 0.5) / GRID) * 100,
     top: ((ui.head.y + 0.5) / GRID) * 100,
   }
-  const glideMs = Math.max(50, tickInterval(ui.score) - 20)
+  const glideMs = Math.max(50, tickInterval(ui.score, mode) - 20)
 
   return (
     <div className="flex flex-col items-center">
+      <p className="mb-1 text-xs font-bold text-cocoa-500">
+        {mode.emoji} {mode.label}模式
+      </p>
       <div className="mb-2 flex w-full max-w-96 justify-center gap-2">
         <div className="card-sticker !rounded-xl min-w-0 flex-1 px-3 py-1.5 text-center">
           <p className="text-xs font-bold text-cocoa-500">分數</p>
@@ -260,7 +284,7 @@ export default function GreedyCatGame() {
         </div>
         <div className="card-sticker !rounded-xl min-w-0 flex-1 px-3 py-1.5 text-center">
           <p className="text-xs font-bold text-cocoa-500">最高分</p>
-          <p className="text-lg font-black text-cocoa-800">{highScore}</p>
+          <p className="text-lg font-black text-cocoa-800">{highScores[mode.id] ?? 0}</p>
         </div>
         <button
           onClick={toggleSound}
@@ -297,13 +321,21 @@ export default function GreedyCatGame() {
             <div className="card-sticker mx-4 w-full max-w-56 p-5 text-center">
               <ChinchillaCat variant="classic" expression="surprised" className="mx-auto h-20 w-20" />
               <p className="mt-2 font-black text-cocoa-900">遊戲結束！</p>
+              <p className="text-xs text-cocoa-500">
+                {mode.emoji} {mode.label}模式
+              </p>
               <p className="mt-1 text-2xl font-black text-honey-600">{ui.score} 分</p>
-              {ui.score >= highScore && ui.score > 0 && (
+              {ui.score >= (highScores[mode.id] ?? 0) && ui.score > 0 && (
                 <p className="text-xs font-bold text-emerald-700">🏆 新紀錄！</p>
               )}
-              <button onClick={start} className="btn-honey mt-3 w-full">
-                再玩一次
-              </button>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => start(mode.id)} className="btn-honey flex-1 !px-2 text-sm">
+                  再玩一次
+                </button>
+                <button onClick={() => setPhase('ready')} className="btn-outline flex-1 !px-2 text-sm">
+                  選模式
+                </button>
+              </div>
             </div>
           </div>
         )}

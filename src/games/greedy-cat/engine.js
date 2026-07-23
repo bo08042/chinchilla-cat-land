@@ -5,6 +5,15 @@ export const GRID = 18
 export const GOLDEN_TICKS = 26 // 金色魚乾存在的 tick 數，超過就消失
 export const GOLDEN_EVERY = 5 // 每吃幾條普通魚乾後，觸發一次金色魚乾機會
 
+// 難度模式：目前只影響速度曲線（之後障礙物/道具會依模式進一步分化，
+// 見 docs 規劃）。start/floor 單位為毫秒，step 是每 3 分加快的幅度。
+export const MODES = {
+  easy: { id: 'easy', label: '簡單', emoji: '🐢', start: 260, step: 6, floor: 110 },
+  medium: { id: 'medium', label: '中等', emoji: '🐱', start: 220, step: 8, floor: 70 },
+  hard: { id: 'hard', label: '困難', emoji: '🔥', start: 180, step: 10, floor: 55 },
+}
+export const MODE_ORDER = ['easy', 'medium', 'hard']
+
 export const DIRS = {
   up: { x: 0, y: -1 },
   down: { x: 0, y: 1 },
@@ -64,7 +73,8 @@ export function randomCell(occupied) {
   return free[Math.floor(Math.random() * free.length)]
 }
 
-// 速度曲線：分數越高跑越快，仿貓咪方塊的等級加速公式
-export function tickInterval(score) {
-  return Math.max(70, 220 - Math.floor(score / 3) * 8)
+// 速度曲線：分數越高跑越快，仿貓咪方塊的等級加速公式；依模式套用不同的
+// 起始速度/加快幅度/最快下限
+export function tickInterval(score, mode = MODES.medium) {
+  return Math.max(mode.floor, mode.start - Math.floor(score / 3) * mode.step)
 }
