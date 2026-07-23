@@ -200,11 +200,14 @@ export default function GreedyCatGame() {
   }, [phase, ui.score])
 
   /* ---------- 操作 ---------- */
+  // 回傳是否真的轉向成功：搖桿用這個值判斷要不要顯示「此方向被拒絕」的回饋
+  // （反向直接撞自己脖子是規則禁止的操作，不是輸入沒被偵測到）。
   function turn(dir) {
-    if (phase !== 'playing') return
+    if (phase !== 'playing') return false
     const st = g.current
-    if (isOpposite(dir, st.dir)) return
+    if (isOpposite(dir, st.dir)) return false
     st.queuedDir = dir
+    return true
   }
 
   useEffect(() => {
