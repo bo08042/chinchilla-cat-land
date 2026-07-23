@@ -55,6 +55,16 @@
   }
 }
 
+/* 遊戲區共用：手機上長按容易誤觸「選取文字／複製」或 iOS 的儲存圖片選單，
+   干擾操作體驗，統一在 GameShell 的內容區關閉。連結與說明文字仍可正常閱讀，
+   只是不能被選取/長按跳出選單。 */
+.game-no-callout {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
 /* 貪吃貓棋盤：正方形，寬度為限、桌面放大 */
 .greedycat-board {
   width: min(88vw, 380px);

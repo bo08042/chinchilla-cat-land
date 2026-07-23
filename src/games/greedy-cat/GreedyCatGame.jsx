@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import ChinchillaCat from '../../components/ChinchillaCat'
+import Joystick from '../../components/Joystick'
 import { load, save } from '../../services/storageService'
 import {
   GRID, GOLDEN_EVERY, GOLDEN_TICKS, createSnake, isOpposite, nextHead,
@@ -246,8 +247,6 @@ export default function GreedyCatGame() {
     top: ((ui.head.y + 0.5) / GRID) * 100,
   }
   const glideMs = Math.max(50, tickInterval(ui.score) - 20)
-  const ctrlBtn =
-    'flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-cocoa-200 bg-white text-xl font-black text-cocoa-800 active:bg-honey-300 select-none'
 
   return (
     <div className="flex flex-col items-center">
@@ -307,27 +306,11 @@ export default function GreedyCatGame() {
         )}
       </div>
 
-      {/* 方向鈕 */}
-      <div className="mt-4 grid grid-cols-3 grid-rows-3 gap-2">
-        <div />
-        <button className={ctrlBtn} onClick={() => turn('up')} aria-label="上">
-          ▲
-        </button>
-        <div />
-        <button className={ctrlBtn} onClick={() => turn('left')} aria-label="左">
-          ◀
-        </button>
-        <div className="flex items-center justify-center text-2xl">🐟</div>
-        <button className={ctrlBtn} onClick={() => turn('right')} aria-label="右">
-          ▶
-        </button>
-        <div />
-        <button className={ctrlBtn} onClick={() => turn('down')} aria-label="下">
-          ▼
-        </button>
-        <div />
+      {/* 方向搖桿 */}
+      <div className="mt-4">
+        <Joystick onDirection={turn} />
       </div>
-      <p className="mt-3 text-center text-xs text-cocoa-500">電腦用方向鍵操作；手機用上面的方向鈕</p>
+      <p className="mt-3 text-center text-xs text-cocoa-500">電腦用方向鍵操作；手機拖曳上面的搖桿</p>
     </div>
   )
 }

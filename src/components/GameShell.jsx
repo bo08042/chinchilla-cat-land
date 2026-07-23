@@ -24,7 +24,7 @@ export default function GameShell({ title, emoji, instructions, children }) {
         {emoji} {title}
       </h1>
 
-      <div className="mt-3 sm:mt-6">{children}</div>
+      <div className="mt-3 game-no-callout sm:mt-6">{children}</div>
 
       {/* 玩法說明彈窗 */}
       {showHelp && (
