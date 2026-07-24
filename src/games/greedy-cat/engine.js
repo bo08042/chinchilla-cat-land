@@ -18,9 +18,9 @@ export const POWERUP_META = {
   slow: { emoji: '🐌', label: '減速藥水' },
 }
 
-// 難度模式：速度曲線 + 家具障礙成長規則 + 該模式會出現的道具種類
-// （第二波新增 obstacles/powerups，見 docs/chinchilla-cat-land/greedy-cat-roadmap.md
-// 的搭配表：簡單無障礙且磁鐵常見降低門檻，困難障礙多但拿掉磁鐵這種「作弊感」道具）。
+// 難度模式：速度曲線 + 家具障礙成長規則 + 該模式會出現的道具種類 + 是否有
+// 掃地機器人（第二波新增 obstacles/powerups，第三波新增 roomba/seeded，見
+// docs/chinchilla-cat-land/greedy-cat-roadmap.md 的搭配表）。
 // start/floor 單位為毫秒，step 是每 3 分加快的幅度。
 export const MODES = {
   easy: {
@@ -32,6 +32,7 @@ export const MODES = {
     floor: 110,
     obstacles: null,
     powerups: { catnip: true, magnet: true, slow: false },
+    roomba: false,
   },
   medium: {
     id: 'medium',
@@ -42,6 +43,7 @@ export const MODES = {
     floor: 70,
     obstacles: { initial: 2, every: 12, max: 8 },
     powerups: { catnip: true, magnet: true, slow: true },
+    roomba: false,
   },
   hard: {
     id: 'hard',
@@ -52,6 +54,19 @@ export const MODES = {
     floor: 55,
     obstacles: { initial: 5, every: 8, max: 14 },
     powerups: { catnip: true, magnet: false, slow: true },
+    roomba: true,
+  },
+  daily: {
+    id: 'daily',
+    label: '每日挑戰',
+    emoji: '🎲',
+    start: 220,
+    step: 8,
+    floor: 70,
+    obstacles: { initial: 3, every: 10, max: 12 },
+    powerups: { catnip: true, magnet: true, slow: true },
+    roomba: true,
+    seeded: true, // 所有隨機（食物/道具/機器人路徑）都改用種子亂數，見 mulberry32
   },
 }
 export const MODE_ORDER = ['easy', 'medium', 'hard']
@@ -61,6 +76,39 @@ export const DIRS = {
   down: { x: 0, y: 1 },
   left: { x: -1, y: 0 },
   right: { x: 1, y: 0 },
+}
+const DIR_KEYS = Object.keys(DIRS)
+
+// mulberry32：輕量種子亂數產生器，回傳一個介於 0~1 的函式，用法與 Math.random
+// 相容。每日挑戰用同一組種子讓所有玩家的關卡隨機序列（食物/道具位置、機器人
+// 路徑）一致，達到「大家玩同一份考卷」的效果（詳見 roadmap 文件的架構前提：
+// 純前端沒有後端即時排行榜，這裡只保證關卡本身相同）。
+export function mulberry32(seed) {
+  let a = seed >>> 0
+  return function random() {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// 由日期字串（YYYY-MM-DD）算出當天的種子
+export function seedFromDate(dateStr) {
+  let hash = 0
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = (hash * 31 + dateStr.charCodeAt(i)) | 0
+  }
+  return hash >>> 0
+}
+
+export function todayDateStr() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 export function createSnake() {
@@ -106,8 +154,9 @@ export function advance(segments, head, grew) {
   return next
 }
 
-// 從網格中隨機挑一個未被佔用的格子
-export function randomCell(occupied) {
+// 從網格中隨機挑一個未被佔用的格子；rng 預設 Math.random，每日挑戰會傳入
+// mulberry32 的種子亂數，讓同一天所有玩家抽到同一組位置序列
+export function randomCell(occupied, rng = Math.random) {
   const taken = new Set(occupied.map((c) => `${c.x},${c.y}`))
   const free = []
   for (let x = 0; x < GRID; x++) {
@@ -116,7 +165,7 @@ export function randomCell(occupied) {
     }
   }
   if (free.length === 0) return null
-  return free[Math.floor(Math.random() * free.length)]
+  return free[Math.floor(rng() * free.length)]
 }
 
 // 速度曲線：分數越高跑越快，仿貓咪方塊的等級加速公式；依模式套用不同的
@@ -149,4 +198,32 @@ export function stepToward(from, to) {
   if (dx === 0 && dy === 0) return { ...from }
   if (Math.abs(dx) >= Math.abs(dy)) return { x: from.x + Math.sign(dx), y: from.y }
   return { x: from.x, y: from.y + Math.sign(dy) }
+}
+
+// 掃地機器人下一步方向：60% 機率選「離蛇頭最近」的合法方向（簡單追蹤），
+// 40% 純隨機（巡邏感，避免每次都精準咬過來，維持可閃避的難度）
+export function pickRoombaDirection(pos, validDirs, targetPos, rng) {
+  if (validDirs.length === 0) return null
+  if (rng() < 0.6) {
+    let best = validDirs[0]
+    let bestDist = Infinity
+    for (const d of validDirs) {
+      const dist = manhattan(nextHead(pos, d), targetPos)
+      if (dist < bestDist) {
+        bestDist = dist
+        best = d
+      }
+    }
+    return best
+  }
+  return validDirs[Math.floor(rng() * validDirs.length)]
+}
+
+// 機器人下一步的合法方向：不出界、不撞家具障礙（蛇不會擋住它——撞到蛇正是
+// 危險發生的時刻，不該被當成「路被擋住」而繞開）
+export function roombaValidDirs(pos, obstacles) {
+  return DIR_KEYS.filter((d) => {
+    const next = nextHead(pos, d)
+    return !outOfBounds(next) && !hitsCell(obstacles, next)
+  })
 }

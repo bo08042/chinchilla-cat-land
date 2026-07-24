@@ -7,22 +7,28 @@ import {
   EFFECT_TICKS, MAGNET_RADIUS, SLOW_MULTIPLIER, MODES, MODE_ORDER, createSnake,
   isOpposite, nextHead, samePos, outOfBounds, hitsBody, hitsCell, advance, randomCell,
   tickInterval, obstacleCountForScore, eligiblePowerupTypes, manhattan, stepToward,
+  mulberry32, seedFromDate, todayDateStr, roombaValidDirs, pickRoombaDirection,
 } from './engine'
 import { initSound, setMuted, sfx } from './sound'
 
 const CELL = 20
 const BOARD = GRID * CELL // 內部繪圖解析度（畫面顯示大小由 CSS .greedycat-board 響應式控制）
 const HEAD_SIZE_PCT = 9.6 // 頭部覆蓋層佔棋盤寬度的百分比
-const DEFAULT_STORE = { highScores: { easy: 0, medium: 0, hard: 0 }, soundOn: true }
+const DEFAULT_STORE = {
+  highScores: { easy: 0, medium: 0, hard: 0 },
+  dailyBest: { date: '', score: 0 },
+  soundOn: true,
+}
 const EMPTY_EFFECTS = { catnip: 0, magnet: 0, slow: 0 }
 
-// 各模式在開始畫面顯示的特色圖示（障礙／道具），讓玩家選之前先知道差異
+// 各模式在開始畫面顯示的特色圖示（障礙／道具／機器人），讓玩家選之前先知道差異
 function modeFeatureIcons(mode) {
   const icons = []
   if (mode.obstacles) icons.push('🪴')
   if (mode.powerups.catnip) icons.push('🌿')
   if (mode.powerups.magnet) icons.push('🧲')
   if (mode.powerups.slow) icons.push('🐌')
+  if (mode.roomba) icons.push('🤖')
   return icons
 }
 
@@ -37,7 +43,18 @@ export default function GreedyCatGame() {
     ...DEFAULT_STORE.highScores,
     ...load('greedyCat', DEFAULT_STORE).highScores,
   }))
+  const [dailyBest, setDailyBest] = useState(() => ({
+    ...DEFAULT_STORE.dailyBest,
+    ...load('greedyCat', DEFAULT_STORE).dailyBest,
+  }))
   const [soundOn, setSoundOn] = useState(() => load('greedyCat', DEFAULT_STORE).soundOn ?? true)
+
+  const todayStr = todayDateStr()
+  // 每日挑戰的最高分是「今天」限定：日期一換，昨天的紀錄就不算數了
+  function bestScore(modeId) {
+    if (modeId === 'daily') return dailyBest.date === todayStr ? dailyBest.score : 0
+    return highScores[modeId] ?? 0
+  }
 
   useEffect(() => {
     setMuted(!soundOn)
@@ -49,17 +66,19 @@ export default function GreedyCatGame() {
     save('greedyCat', { ...load('greedyCat', DEFAULT_STORE), soundOn: next })
   }
 
-  function initGame(mode) {
+  function initGame(mode, rng) {
     const snake = createSnake()
     g.current = {
       mode,
+      rng,
       snake,
       dir: 'right',
       queuedDir: 'right',
-      food: randomCell(snake),
+      food: randomCell(snake, rng),
       golden: null,
       powerup: null,
       obstacles: [],
+      roomba: null,
       effects: { ...EMPTY_EFFECTS },
       score: 0,
       fishEaten: 0,
@@ -68,9 +87,17 @@ export default function GreedyCatGame() {
     if (mode.obstacles) {
       const target = obstacleCountForScore(mode, 0)
       for (let i = 0; i < target; i++) {
-        const cell = randomCell(occupied(g.current))
+        const cell = randomCell(occupied(g.current), rng)
         if (!cell) break
         g.current.obstacles.push(cell)
+      }
+    }
+    if (mode.roomba) {
+      const cell = randomCell(occupied(g.current), rng)
+      if (cell) {
+        const validDirs = roombaValidDirs(cell, g.current.obstacles)
+        const dir = pickRoombaDirection(cell, validDirs, snake[0], rng) ?? 'up'
+        g.current.roomba = { ...cell, dir }
       }
     }
     setUi({ score: 0, head: snake[0], effects: { ...EMPTY_EFFECTS } })
@@ -78,7 +105,10 @@ export default function GreedyCatGame() {
 
   function start(modeId) {
     initSound()
-    initGame(MODES[modeId] ?? MODES.medium)
+    const mode = MODES[modeId] ?? MODES.medium
+    // 每日挑戰用日期算出固定種子，全部玩家當天抽到同一組食物/道具/機器人路徑
+    const rng = mode.seeded ? mulberry32(seedFromDate(todayDateStr())) : Math.random
+    initGame(mode, rng)
     setPhase('playing')
     setTimeout(draw, 0)
   }
@@ -194,6 +224,23 @@ export default function GreedyCatGame() {
     ctx.fillText(POWERUP_META[powerup.type]?.emoji ?? '✨', cx, cy + 1)
   }
 
+  // 掃地機器人：灰藍圓底 + emoji，跟其他實體的暖色調拉開視覺區隔
+  function drawRoomba(ctx, roomba) {
+    const cx = roomba.x * CELL + CELL / 2
+    const cy = roomba.y * CELL + CELL / 2
+    ctx.beginPath()
+    ctx.arc(cx, cy, CELL * 0.44, 0, Math.PI * 2)
+    ctx.fillStyle = '#d8dde3'
+    ctx.fill()
+    ctx.strokeStyle = '#8a94a3'
+    ctx.lineWidth = 1.5
+    ctx.stroke()
+    ctx.font = `${CELL * 0.8}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('🤖', cx, cy + 1)
+  }
+
   function draw() {
     const canvas = canvasRef.current
     if (!canvas || !g.current) return
@@ -224,6 +271,7 @@ export default function GreedyCatGame() {
     if (st.food) drawFood(ctx, st.food, '#dcefe6')
     if (st.golden) drawGolden(ctx, st.golden, frame)
     if (st.powerup) drawPowerup(ctx, st.powerup, frame)
+    if (st.roomba) drawRoomba(ctx, st.roomba)
   }
 
   /* ---------- 遊戲流程 ---------- */
@@ -234,6 +282,7 @@ export default function GreedyCatGame() {
       ...(st.golden ? [st.golden] : []),
       ...(st.powerup ? [st.powerup] : []),
       ...(st.obstacles || []),
+      ...(st.roomba ? [st.roomba] : []),
       ...extra,
     ]
   }
@@ -259,17 +308,17 @@ export default function GreedyCatGame() {
       st.fishEaten += 1
       st.growPending += 1
       sfx.eat()
-      st.food = randomCell(occupied(st, [head]))
+      st.food = randomCell(occupied(st, [head]), st.rng)
       if (!st.golden && st.fishEaten % GOLDEN_EVERY === 0) {
-        const cell = randomCell(occupied(st, [head]))
+        const cell = randomCell(occupied(st, [head]), st.rng)
         if (cell) st.golden = { ...cell, ticksLeft: GOLDEN_TICKS }
       }
       if (!st.powerup && st.fishEaten % POWERUP_EVERY === 0) {
         const types = eligiblePowerupTypes(st.mode)
         if (types.length) {
-          const cell = randomCell(occupied(st, [head]))
+          const cell = randomCell(occupied(st, [head]), st.rng)
           if (cell) {
-            const type = types[Math.floor(Math.random() * types.length)]
+            const type = types[Math.floor(st.rng() * types.length)]
             st.powerup = { ...cell, type, ticksLeft: POWERUP_TICKS }
           }
         }
@@ -320,10 +369,28 @@ export default function GreedyCatGame() {
     if (st.mode.obstacles) {
       const target = obstacleCountForScore(st.mode, st.score)
       while (st.obstacles.length < target) {
-        const cell = randomCell(occupied(st, [head]))
+        const cell = randomCell(occupied(st, [head]), st.rng)
         if (!cell) break
         st.obstacles.push(cell)
       }
+    }
+
+    // 掃地機器人：每兩個 tick 才移動一次（半速），越快的模式也還能閃得掉；
+    // 目前方向若已經走不通（撞牆/撞障礙）或機率觸發就重新選方向
+    if (st.roomba && st.frame % 2 === 0) {
+      const validDirs = roombaValidDirs(st.roomba, st.obstacles)
+      let dir = st.roomba.dir
+      const reconsider = !validDirs.includes(dir) || st.rng() < 0.15
+      if (reconsider && validDirs.length > 0) {
+        dir = pickRoombaDirection(st.roomba, validDirs, head, st.rng) ?? dir
+      }
+      if (validDirs.includes(dir)) {
+        st.roomba = { ...nextHead(st.roomba, dir), dir }
+      }
+    }
+    if (st.roomba && !invincible && st.snake.some((s) => samePos(s, st.roomba))) {
+      gameOver()
+      return
     }
 
     setUi({ score: st.score, head, effects: { ...st.effects } })
@@ -335,12 +402,22 @@ export default function GreedyCatGame() {
     sfx.gameOver()
     const finalScore = g.current.score
     const modeId = g.current.mode.id
-    setHighScores((prev) => {
-      if (finalScore <= (prev[modeId] ?? 0)) return prev
-      const next = { ...prev, [modeId]: finalScore }
-      save('greedyCat', { ...load('greedyCat', DEFAULT_STORE), highScores: next })
-      return next
-    })
+    if (modeId === 'daily') {
+      setDailyBest((prev) => {
+        const prevScore = prev.date === todayStr ? prev.score : 0
+        if (finalScore <= prevScore) return prev.date === todayStr ? prev : { date: todayStr, score: prevScore }
+        const next = { date: todayStr, score: finalScore }
+        save('greedyCat', { ...load('greedyCat', DEFAULT_STORE), dailyBest: next })
+        return next
+      })
+    } else {
+      setHighScores((prev) => {
+        if (finalScore <= (prev[modeId] ?? 0)) return prev
+        const next = { ...prev, [modeId]: finalScore }
+        save('greedyCat', { ...load('greedyCat', DEFAULT_STORE), highScores: next })
+        return next
+      })
+    }
     setPhase('over')
   }
 
@@ -387,14 +464,14 @@ export default function GreedyCatGame() {
       <div className="card-sticker p-8 text-center">
         <ChinchillaCat variant="fluffy" className="mx-auto h-24 w-24" />
         <p className="mx-auto mt-4 max-w-sm leading-relaxed text-cocoa-700">
-          操控貪吃的金吉拉毛毛蟲，吃魚乾長大！小心別撞到牆壁、自己的身體或家具障礙。
+          操控貪吃的金吉拉毛毛蟲，吃魚乾長大！小心別撞到牆壁、自己的身體、家具障礙或掃地機器人。
           偶爾會出現閃閃發光的金色魚乾與道具，手腳要快才吃得到！
         </p>
         <p className="mt-4 text-sm font-bold text-cocoa-700">選擇難度開始：</p>
         <div className="mx-auto mt-3 grid max-w-xs gap-2">
           {MODE_ORDER.map((modeId) => {
             const mode = MODES[modeId]
-            const best = highScores[modeId] ?? 0
+            const best = bestScore(modeId)
             return (
               <button
                 key={modeId}
@@ -414,6 +491,30 @@ export default function GreedyCatGame() {
               </button>
             )
           })}
+        </div>
+
+        <div className="mx-auto mt-4 max-w-xs border-t border-cocoa-100 pt-4">
+          <p className="text-xs font-bold text-cocoa-700">或挑戰今日限定關卡：</p>
+          <button
+            onClick={() => start('daily')}
+            className="card-sticker card-sticker-hover mt-2 flex w-full items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-2 font-black text-cocoa-900">
+              <span className="text-2xl">{MODES.daily.emoji}</span>
+              <span>
+                {MODES.daily.label}
+                <span className="block text-xs font-normal text-cocoa-400">
+                  {modeFeatureIcons(MODES.daily).join(' ')}
+                </span>
+              </span>
+            </span>
+            <span className="text-xs text-cocoa-500">
+              {bestScore('daily') > 0 ? `🏆 今日 ${bestScore('daily')}` : '今日尚未挑戰'}
+            </span>
+          </button>
+          <p className="mt-1.5 text-center text-[11px] text-cocoa-400">
+            {todayStr} · 每天同一組關卡，大家拚同一份考卷，截圖分享比比看！
+          </p>
         </div>
       </div>
     )
@@ -441,8 +542,8 @@ export default function GreedyCatGame() {
           <p className="text-lg font-black text-honey-600">{ui.score}</p>
         </div>
         <div className="card-sticker !rounded-xl min-w-0 flex-1 px-3 py-1.5 text-center">
-          <p className="text-xs font-bold text-cocoa-500">最高分</p>
-          <p className="text-lg font-black text-cocoa-800">{highScores[mode.id] ?? 0}</p>
+          <p className="text-xs font-bold text-cocoa-500">{mode.id === 'daily' ? '今日最佳' : '最高分'}</p>
+          <p className="text-lg font-black text-cocoa-800">{bestScore(mode.id)}</p>
         </div>
         <button
           onClick={toggleSound}
@@ -504,7 +605,7 @@ export default function GreedyCatGame() {
                 {mode.emoji} {mode.label}模式
               </p>
               <p className="mt-1 text-2xl font-black text-honey-600">{ui.score} 分</p>
-              {ui.score >= (highScores[mode.id] ?? 0) && ui.score > 0 && (
+              {ui.score >= bestScore(mode.id) && ui.score > 0 && (
                 <p className="text-xs font-bold text-emerald-700">🏆 新紀錄！</p>
               )}
               <div className="mt-3 flex gap-2">
