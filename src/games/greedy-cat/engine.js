@@ -111,6 +111,53 @@ export function todayDateStr() {
   return `${y}-${m}-${day}`
 }
 
+// 兩個 YYYY-MM-DD 日期字串相差幾天（用於每日挑戰的連續天數判斷）
+export function daysBetween(a, b) {
+  const da = new Date(`${a}T00:00:00`)
+  const db = new Date(`${b}T00:00:00`)
+  return Math.round((db - da) / 86400000)
+}
+
+// 成就徽章：check(runStats, ctx) 在單局結束時評估，runStats 是這一局的統計
+// （score/goldenEaten/powerupTypes/hadRoomba），ctx 是這一局結算「之後」的
+// 累積狀態（highScores/dailyStreak），讓「三種模式都破 30 分」這類跨局條件
+// 也能在剛好補齊的那一局立刻解鎖。
+export const ACHIEVEMENTS = [
+  { id: 'score20', emoji: '🐟', name: '小試身手', condition: '單局分數達到 20 分', check: (r) => r.score >= 20 },
+  { id: 'score50', emoji: '😻', name: '老饕上身', condition: '單局分數達到 50 分', check: (r) => r.score >= 50 },
+  { id: 'score100', emoji: '👑', name: '貪吃之王', condition: '單局分數達到 100 分', check: (r) => r.score >= 100 },
+  {
+    id: 'allModes30',
+    emoji: '🎯',
+    name: '三棲玩家',
+    condition: '簡單、中等、困難三種模式都破 30 分',
+    check: (r, ctx) =>
+      (ctx.highScores.easy ?? 0) >= 30 && (ctx.highScores.medium ?? 0) >= 30 && (ctx.highScores.hard ?? 0) >= 30,
+  },
+  { id: 'golden3', emoji: '✨', name: '金運加持', condition: '單局吃到 3 顆金色魚乾', check: (r) => r.goldenEaten >= 3 },
+  {
+    id: 'powerupCollector',
+    emoji: '🎒',
+    name: '道具收藏家',
+    condition: '單局吃到 3 種不同道具',
+    check: (r) => r.powerupTypes.size >= 3,
+  },
+  {
+    id: 'roombaDodger',
+    emoji: '🤖',
+    name: '機器人剋星',
+    condition: '有掃地機器人的模式單局破 30 分',
+    check: (r) => r.hadRoomba && r.score >= 30,
+  },
+  {
+    id: 'dailyStreak3',
+    emoji: '📅',
+    name: '持之以恆',
+    condition: '連續 3 天玩每日挑戰',
+    check: (r, ctx) => ctx.dailyStreak >= 3,
+  },
+]
+
 export function createSnake() {
   const c = Math.floor(GRID / 2)
   // 蛇頭在陣列第 0 個，身體向左延伸
