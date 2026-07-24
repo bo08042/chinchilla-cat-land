@@ -19,7 +19,7 @@ export default function Joystick({ onDirection, size = 128 }) {
   const [rejected, setRejected] = useState(false)
 
   const radius = size * 0.3 // 搖桿頭最大位移半徑
-  const deadzone = size * 0.11 // 小於這個距離不觸發方向，避免手抖誤觸
+  const deadzone = size * 0.06 // 小於這個距離不觸發方向，避免手抖誤觸（原 0.11 對手機快速小幅撥動太不靈敏）
   const hysteresis = 1.25 // 已判定某軸向後，要切到另一軸向需要多明顯的分量差距
 
   function pickDirection(dx, dy, lastDir) {
@@ -61,10 +61,18 @@ export default function Joystick({ onDirection, size = 128 }) {
     }
   }
 
-  function handlePointerDown(e) {
-    e.preventDefault()
+  // 重新量測搖桿目前在畫面上的中心點；拖曳過程中畫面版面可能變動
+  // （例如遊戲中途出現/消失的效果徽章列會把搖桿整個往上下推），若只在
+  // pointerdown 當下抓一次原點，版面一變動方向判斷就會跟畫面對不上，
+  // 拖曳中因此每次 pointermove 都重新校正一次。
+  function refreshOrigin() {
     const rect = baseRef.current.getBoundingClientRect()
     originRef.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+  }
+
+  function handlePointerDown(e) {
+    e.preventDefault()
+    refreshOrigin()
     baseRef.current.setPointerCapture(e.pointerId)
     activeRef.current = true
     lastDirRef.current = null
@@ -73,6 +81,7 @@ export default function Joystick({ onDirection, size = 128 }) {
 
   function handlePointerMove(e) {
     if (!activeRef.current) return
+    refreshOrigin()
     updateFromPoint(e.clientX, e.clientY)
   }
 
