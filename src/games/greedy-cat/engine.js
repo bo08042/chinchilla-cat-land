@@ -5,12 +5,54 @@ export const GRID = 18
 export const GOLDEN_TICKS = 26 // 金色魚乾存在的 tick 數，超過就消失
 export const GOLDEN_EVERY = 5 // 每吃幾條普通魚乾後，觸發一次金色魚乾機會
 
-// 難度模式：目前只影響速度曲線（之後障礙物/道具會依模式進一步分化，
-// 見 docs 規劃）。start/floor 單位為毫秒，step 是每 3 分加快的幅度。
+export const POWERUP_EVERY = 7 // 每吃幾條普通魚乾後，觸發一次道具生成機會
+export const POWERUP_TICKS = 30 // 道具在場上存在的 tick 數，超過就消失
+export const EFFECT_TICKS = { catnip: 40, magnet: 35, slow: 35 } // 各道具吃到後的持續 tick 數
+export const MAGNET_RADIUS = 4 // 魚乾磁鐵吸引食物的曼哈頓距離範圍
+export const SLOW_MULTIPLIER = 1.6 // 減速藥水期間，tick 間隔乘上的倍率
+
+export const POWERUP_TYPES = ['catnip', 'magnet', 'slow']
+export const POWERUP_META = {
+  catnip: { emoji: '🌿', label: '貓草無敵' },
+  magnet: { emoji: '🧲', label: '魚乾磁鐵' },
+  slow: { emoji: '🐌', label: '減速藥水' },
+}
+
+// 難度模式：速度曲線 + 家具障礙成長規則 + 該模式會出現的道具種類
+// （第二波新增 obstacles/powerups，見 docs/chinchilla-cat-land/greedy-cat-roadmap.md
+// 的搭配表：簡單無障礙且磁鐵常見降低門檻，困難障礙多但拿掉磁鐵這種「作弊感」道具）。
+// start/floor 單位為毫秒，step 是每 3 分加快的幅度。
 export const MODES = {
-  easy: { id: 'easy', label: '簡單', emoji: '🐢', start: 260, step: 6, floor: 110 },
-  medium: { id: 'medium', label: '中等', emoji: '🐱', start: 220, step: 8, floor: 70 },
-  hard: { id: 'hard', label: '困難', emoji: '🔥', start: 180, step: 10, floor: 55 },
+  easy: {
+    id: 'easy',
+    label: '簡單',
+    emoji: '🐢',
+    start: 260,
+    step: 6,
+    floor: 110,
+    obstacles: null,
+    powerups: { catnip: true, magnet: true, slow: false },
+  },
+  medium: {
+    id: 'medium',
+    label: '中等',
+    emoji: '🐱',
+    start: 220,
+    step: 8,
+    floor: 70,
+    obstacles: { initial: 2, every: 12, max: 8 },
+    powerups: { catnip: true, magnet: true, slow: true },
+  },
+  hard: {
+    id: 'hard',
+    label: '困難',
+    emoji: '🔥',
+    start: 180,
+    step: 10,
+    floor: 55,
+    obstacles: { initial: 5, every: 8, max: 14 },
+    powerups: { catnip: true, magnet: false, slow: true },
+  },
 }
 export const MODE_ORDER = ['easy', 'medium', 'hard']
 
@@ -53,6 +95,10 @@ export function hitsBody(segments, pos) {
   return segments.slice(0, -1).some((s) => s.x === pos.x && s.y === pos.y)
 }
 
+export function hitsCell(cells, pos) {
+  return (cells || []).some((c) => c.x === pos.x && c.y === pos.y)
+}
+
 // 前進一格：grew=true 時保留尾巴（變長），否則去掉尾巴
 export function advance(segments, head, grew) {
   const next = [head, ...segments]
@@ -77,4 +123,30 @@ export function randomCell(occupied) {
 // 起始速度/加快幅度/最快下限
 export function tickInterval(score, mode = MODES.medium) {
   return Math.max(mode.floor, mode.start - Math.floor(score / 3) * mode.step)
+}
+
+// 該模式目前分數下應該有幾個家具障礙（隨分數階梯式增加，有上限）
+export function obstacleCountForScore(mode, score) {
+  const cfg = mode.obstacles
+  if (!cfg) return 0
+  return Math.min(cfg.max, cfg.initial + Math.floor(score / cfg.every))
+}
+
+// 該模式會出現的道具種類（依搭配表，例如困難模式沒有魚乾磁鐵）
+export function eligiblePowerupTypes(mode) {
+  return POWERUP_TYPES.filter((t) => mode.powerups[t])
+}
+
+export function manhattan(a, b) {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+}
+
+// 魚乾磁鐵吸引效果：往目標移動一格，一次只移動一個軸向，
+// 模擬食物被「滑」過來的感覺（避免直接跳格、跳過障礙判斷過度複雜）
+export function stepToward(from, to) {
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  if (dx === 0 && dy === 0) return { ...from }
+  if (Math.abs(dx) >= Math.abs(dy)) return { x: from.x + Math.sign(dx), y: from.y }
+  return { x: from.x, y: from.y + Math.sign(dy) }
 }

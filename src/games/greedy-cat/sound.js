@@ -71,6 +71,11 @@ export const sfx = {
       tone({ type: 'triangle', freq, dur: 0.14, gain: 0.07, delay: i * 0.06 }),
     )
   },
+  powerUp() {
+    if (!ready()) return
+    tone({ type: 'sine', freq: 520, to: 780, dur: 0.12, gain: 0.07 })
+    tone({ type: 'sine', freq: 780, to: 1040, dur: 0.1, gain: 0.06, delay: 0.08 })
+  },
   gameOver() {
     if (!ready()) return
     meow({ base: 320, dur: 0.6, gain: 0.13 })

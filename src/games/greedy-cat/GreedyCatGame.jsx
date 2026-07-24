@@ -3,8 +3,10 @@ import ChinchillaCat from '../../components/ChinchillaCat'
 import Joystick from '../../components/Joystick'
 import { load, save } from '../../services/storageService'
 import {
-  GRID, GOLDEN_EVERY, GOLDEN_TICKS, MODES, MODE_ORDER, createSnake, isOpposite,
-  nextHead, samePos, outOfBounds, hitsBody, advance, randomCell, tickInterval,
+  GRID, GOLDEN_EVERY, GOLDEN_TICKS, POWERUP_EVERY, POWERUP_TICKS, POWERUP_META,
+  EFFECT_TICKS, MAGNET_RADIUS, SLOW_MULTIPLIER, MODES, MODE_ORDER, createSnake,
+  isOpposite, nextHead, samePos, outOfBounds, hitsBody, hitsCell, advance, randomCell,
+  tickInterval, obstacleCountForScore, eligiblePowerupTypes, manhattan, stepToward,
 } from './engine'
 import { initSound, setMuted, sfx } from './sound'
 
@@ -12,6 +14,17 @@ const CELL = 20
 const BOARD = GRID * CELL // 內部繪圖解析度（畫面顯示大小由 CSS .greedycat-board 響應式控制）
 const HEAD_SIZE_PCT = 9.6 // 頭部覆蓋層佔棋盤寬度的百分比
 const DEFAULT_STORE = { highScores: { easy: 0, medium: 0, hard: 0 }, soundOn: true }
+const EMPTY_EFFECTS = { catnip: 0, magnet: 0, slow: 0 }
+
+// 各模式在開始畫面顯示的特色圖示（障礙／道具），讓玩家選之前先知道差異
+function modeFeatureIcons(mode) {
+  const icons = []
+  if (mode.obstacles) icons.push('🪴')
+  if (mode.powerups.catnip) icons.push('🌿')
+  if (mode.powerups.magnet) icons.push('🧲')
+  if (mode.powerups.slow) icons.push('🐌')
+  return icons
+}
 
 export default function GreedyCatGame() {
   const canvasRef = useRef(null)
@@ -19,7 +32,7 @@ export default function GreedyCatGame() {
   const timerRef = useRef(null)
 
   const [phase, setPhase] = useState('ready') // ready | playing | over
-  const [ui, setUi] = useState({ score: 0, head: { x: 9, y: 9 } })
+  const [ui, setUi] = useState({ score: 0, head: { x: 9, y: 9 }, effects: EMPTY_EFFECTS })
   const [highScores, setHighScores] = useState(() => ({
     ...DEFAULT_STORE.highScores,
     ...load('greedyCat', DEFAULT_STORE).highScores,
@@ -45,11 +58,22 @@ export default function GreedyCatGame() {
       queuedDir: 'right',
       food: randomCell(snake),
       golden: null,
+      powerup: null,
+      obstacles: [],
+      effects: { ...EMPTY_EFFECTS },
       score: 0,
       fishEaten: 0,
       growPending: 0,
     }
-    setUi({ score: 0, head: snake[0] })
+    if (mode.obstacles) {
+      const target = obstacleCountForScore(mode, 0)
+      for (let i = 0; i < target; i++) {
+        const cell = randomCell(occupied(g.current))
+        if (!cell) break
+        g.current.obstacles.push(cell)
+      }
+    }
+    setUi({ score: 0, head: snake[0], effects: { ...EMPTY_EFFECTS } })
   }
 
   function start(modeId) {
@@ -60,15 +84,21 @@ export default function GreedyCatGame() {
   }
 
   /* ---------- 繪圖（Canvas 畫身體與食物，頭由 SVG 覆蓋層負責） ---------- */
-  function drawSegment(ctx, seg, i, total) {
+  function drawSegment(ctx, seg, i, total, invincible, frame) {
     const cx = seg.x * CELL + CELL / 2
     const cy = seg.y * CELL + CELL / 2
     const r = CELL * (i === total - 1 ? 0.36 : 0.47)
     ctx.beginPath()
     ctx.arc(cx, cy, r, 0, Math.PI * 2)
-    ctx.fillStyle = i % 3 === 0 ? '#f3ecdf' : '#fdfaf4'
-    ctx.fill()
-    ctx.strokeStyle = '#cfc4b6'
+    if (invincible) {
+      ctx.fillStyle = frame % 2 === 0 ? '#eaffea' : '#d3f7d3'
+      ctx.fill()
+      ctx.strokeStyle = '#6fbf73'
+    } else {
+      ctx.fillStyle = i % 3 === 0 ? '#f3ecdf' : '#fdfaf4'
+      ctx.fill()
+      ctx.strokeStyle = '#cfc4b6'
+    }
     ctx.lineWidth = 1.5
     ctx.stroke()
   }
@@ -113,11 +143,64 @@ export default function GreedyCatGame() {
     ctx.fillText('✨', cx + CELL * 0.38, cy - CELL * 0.38)
   }
 
+  // 家具障礙：素色方塊墊底 + 盆栽圖示，一眼就看得出「不能踩」
+  function drawObstacle(ctx, cell) {
+    const x = cell.x * CELL + 2
+    const y = cell.y * CELL + 2
+    const size = CELL - 4
+    ctx.fillStyle = '#e2d0b8'
+    ctx.strokeStyle = '#a98a5c'
+    ctx.lineWidth = 1.5
+    if (ctx.roundRect) {
+      ctx.beginPath()
+      ctx.roundRect(x, y, size, size, 4)
+      ctx.fill()
+      ctx.stroke()
+    } else {
+      ctx.fillRect(x, y, size, size)
+      ctx.strokeRect(x, y, size, size)
+    }
+    ctx.font = `${CELL * 0.8}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('🪴', cell.x * CELL + CELL / 2, cell.y * CELL + CELL / 2 + 1)
+  }
+
+  const POWERUP_RING_COLOR = { catnip: '#6fbf73', magnet: '#4c94e0', slow: '#a774d1' }
+
+  // 道具：脈動色環（依種類變色）+ 白底 + emoji，跟金色魚乾同一套視覺語言但顏色區分種類
+  function drawPowerup(ctx, powerup, frame) {
+    const cx = powerup.x * CELL + CELL / 2
+    const cy = powerup.y * CELL + CELL / 2
+    const ringR = CELL * (0.5 + 0.08 * Math.sin(frame * 0.8))
+    const color = POWERUP_RING_COLOR[powerup.type] ?? '#6fbf73'
+    ctx.beginPath()
+    ctx.arc(cx, cy, ringR, 0, Math.PI * 2)
+    ctx.strokeStyle = color
+    ctx.lineWidth = 2.5
+    ctx.globalAlpha = 0.6
+    ctx.stroke()
+    ctx.globalAlpha = 1
+    ctx.beginPath()
+    ctx.arc(cx, cy, CELL * 0.4, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+    ctx.strokeStyle = color
+    ctx.lineWidth = 1.5
+    ctx.stroke()
+    ctx.font = `${CELL * 0.75}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(POWERUP_META[powerup.type]?.emoji ?? '✨', cx, cy + 1)
+  }
+
   function draw() {
     const canvas = canvasRef.current
     if (!canvas || !g.current) return
     const ctx = canvas.getContext('2d')
     const st = g.current
+    const invincible = st.effects.catnip > 0
+    const frame = st.frame ?? 0
 
     ctx.fillStyle = '#fffbf0'
     ctx.fillRect(0, 0, BOARD, BOARD)
@@ -134,14 +217,25 @@ export default function GreedyCatGame() {
       ctx.stroke()
     }
 
-    for (let i = st.snake.length - 1; i >= 1; i--) drawSegment(ctx, st.snake[i], i, st.snake.length)
+    st.obstacles.forEach((cell) => drawObstacle(ctx, cell))
+    for (let i = st.snake.length - 1; i >= 1; i--) {
+      drawSegment(ctx, st.snake[i], i, st.snake.length, invincible, frame)
+    }
     if (st.food) drawFood(ctx, st.food, '#dcefe6')
-    if (st.golden) drawGolden(ctx, st.golden, st.frame ?? 0)
+    if (st.golden) drawGolden(ctx, st.golden, frame)
+    if (st.powerup) drawPowerup(ctx, st.powerup, frame)
   }
 
   /* ---------- 遊戲流程 ---------- */
   function occupied(st, extra = []) {
-    return [...st.snake, ...(st.food ? [st.food] : []), ...(st.golden ? [st.golden] : []), ...extra]
+    return [
+      ...st.snake,
+      ...(st.food ? [st.food] : []),
+      ...(st.golden ? [st.golden] : []),
+      ...(st.powerup ? [st.powerup] : []),
+      ...(st.obstacles || []),
+      ...extra,
+    ]
   }
 
   function tick() {
@@ -149,8 +243,13 @@ export default function GreedyCatGame() {
     st.frame = (st.frame ?? 0) + 1
     st.dir = st.queuedDir
     const head = nextHead(st.snake[0], st.dir)
+    const invincible = st.effects.catnip > 0
 
-    if (outOfBounds(head) || hitsBody(st.snake, head)) {
+    if (outOfBounds(head)) {
+      gameOver()
+      return
+    }
+    if (!invincible && (hitsBody(st.snake, head) || hitsCell(st.obstacles, head))) {
       gameOver()
       return
     }
@@ -165,11 +264,25 @@ export default function GreedyCatGame() {
         const cell = randomCell(occupied(st, [head]))
         if (cell) st.golden = { ...cell, ticksLeft: GOLDEN_TICKS }
       }
+      if (!st.powerup && st.fishEaten % POWERUP_EVERY === 0) {
+        const types = eligiblePowerupTypes(st.mode)
+        if (types.length) {
+          const cell = randomCell(occupied(st, [head]))
+          if (cell) {
+            const type = types[Math.floor(Math.random() * types.length)]
+            st.powerup = { ...cell, type, ticksLeft: POWERUP_TICKS }
+          }
+        }
+      }
     } else if (samePos(head, st.golden)) {
       st.score += 5
       st.growPending += 3
       sfx.eatGolden()
       st.golden = null
+    } else if (samePos(head, st.powerup)) {
+      st.effects[st.powerup.type] = EFFECT_TICKS[st.powerup.type]
+      sfx.powerUp()
+      st.powerup = null
     }
 
     const grew = st.growPending > 0
@@ -180,8 +293,40 @@ export default function GreedyCatGame() {
       st.golden.ticksLeft -= 1
       if (st.golden.ticksLeft <= 0) st.golden = null
     }
+    if (st.powerup) {
+      st.powerup.ticksLeft -= 1
+      if (st.powerup.ticksLeft <= 0) st.powerup = null
+    }
 
-    setUi({ score: st.score, head })
+    for (const key of Object.keys(st.effects)) {
+      if (st.effects[key] > 0) st.effects[key] -= 1
+    }
+
+    // 魚乾磁鐵：範圍內的食物每 tick 往蛇頭滑一格，滑到的格子不能是蛇身或障礙
+    if (st.effects.magnet > 0) {
+      const blocked = [...st.snake.slice(1), ...st.obstacles]
+      const isBlocked = (c) => blocked.some((b) => b.x === c.x && b.y === c.y)
+      if (st.food && manhattan(head, st.food) <= MAGNET_RADIUS) {
+        const moved = stepToward(st.food, head)
+        if (!isBlocked(moved)) st.food = moved
+      }
+      if (st.golden && manhattan(head, st.golden) <= MAGNET_RADIUS) {
+        const moved = stepToward(st.golden, head)
+        if (!isBlocked(moved)) st.golden = { ...st.golden, ...moved }
+      }
+    }
+
+    // 家具障礙隨分數增加，每次補到目標數量為止
+    if (st.mode.obstacles) {
+      const target = obstacleCountForScore(st.mode, st.score)
+      while (st.obstacles.length < target) {
+        const cell = randomCell(occupied(st, [head]))
+        if (!cell) break
+        st.obstacles.push(cell)
+      }
+    }
+
+    setUi({ score: st.score, head, effects: { ...st.effects } })
     draw()
   }
 
@@ -199,13 +344,17 @@ export default function GreedyCatGame() {
     setPhase('over')
   }
 
-  // 速度隨分數提升；分數變化時才重新訂閱（不是每個 tick 都重訂）
+  const slowActive = (ui.effects?.slow ?? 0) > 0
+
+  // 速度隨分數提升，減速藥水生效時間隔乘上倍率；分數或減速狀態變化時才重新訂閱
   useEffect(() => {
     if (phase !== 'playing') return
-    timerRef.current = setInterval(tick, tickInterval(ui.score, g.current.mode))
+    const base = tickInterval(ui.score, g.current.mode)
+    const interval = slowActive ? base * SLOW_MULTIPLIER : base
+    timerRef.current = setInterval(tick, interval)
     return () => clearInterval(timerRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, ui.score])
+  }, [phase, ui.score, slowActive])
 
   /* ---------- 操作 ---------- */
   // 回傳是否真的轉向成功：搖桿用這個值判斷要不要顯示「此方向被拒絕」的回饋
@@ -238,8 +387,8 @@ export default function GreedyCatGame() {
       <div className="card-sticker p-8 text-center">
         <ChinchillaCat variant="fluffy" className="mx-auto h-24 w-24" />
         <p className="mx-auto mt-4 max-w-sm leading-relaxed text-cocoa-700">
-          操控貪吃的金吉拉毛毛蟲，吃魚乾長大！小心別撞到牆壁或自己的身體。
-          偶爾會出現閃閃發光的金色魚乾，手腳要快才吃得到！
+          操控貪吃的金吉拉毛毛蟲，吃魚乾長大！小心別撞到牆壁、自己的身體或家具障礙。
+          偶爾會出現閃閃發光的金色魚乾與道具，手腳要快才吃得到！
         </p>
         <p className="mt-4 text-sm font-bold text-cocoa-700">選擇難度開始：</p>
         <div className="mx-auto mt-3 grid max-w-xs gap-2">
@@ -254,7 +403,12 @@ export default function GreedyCatGame() {
               >
                 <span className="flex items-center gap-2 font-black text-cocoa-900">
                   <span className="text-2xl">{mode.emoji}</span>
-                  {mode.label}
+                  <span>
+                    {mode.label}
+                    <span className="block text-xs font-normal text-cocoa-400">
+                      {modeFeatureIcons(mode).join(' ')}
+                    </span>
+                  </span>
                 </span>
                 <span className="text-xs text-cocoa-500">{best > 0 ? `🏆 ${best}` : '尚未挑戰'}</span>
               </button>
@@ -270,7 +424,11 @@ export default function GreedyCatGame() {
     left: ((ui.head.x + 0.5) / GRID) * 100,
     top: ((ui.head.y + 0.5) / GRID) * 100,
   }
-  const glideMs = Math.max(50, tickInterval(ui.score, mode) - 20)
+  const baseInterval = tickInterval(ui.score, mode)
+  const effectiveInterval = slowActive ? baseInterval * SLOW_MULTIPLIER : baseInterval
+  const glideMs = Math.max(50, effectiveInterval - 20)
+  const invincibleActive = (ui.effects?.catnip ?? 0) > 0
+  const magnetActive = (ui.effects?.magnet ?? 0) > 0
 
   return (
     <div className="flex flex-col items-center">
@@ -295,6 +453,26 @@ export default function GreedyCatGame() {
         </button>
       </div>
 
+      {(invincibleActive || magnetActive || slowActive) && (
+        <div className="mb-2 flex gap-1.5">
+          {invincibleActive && (
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+              🌿 無敵中
+            </span>
+          )}
+          {magnetActive && (
+            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-bold text-sky-700">
+              🧲 磁力中
+            </span>
+          )}
+          {slowActive && (
+            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+              🐌 減速中
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="greedycat-board relative">
         <canvas
           ref={canvasRef}
@@ -311,6 +489,7 @@ export default function GreedyCatGame() {
             height: `${HEAD_SIZE_PCT}%`,
             transform: 'translate(-50%, -50%)',
             transition: `left ${glideMs}ms linear, top ${glideMs}ms linear`,
+            filter: invincibleActive ? 'drop-shadow(0 0 6px #6fbf73)' : 'none',
           }}
         >
           <ChinchillaCat variant="fluffy" className="h-full w-full" />
